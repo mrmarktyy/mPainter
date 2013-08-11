@@ -1,4 +1,10 @@
-mPainter
+Introduction
 ========
 
-An online painter application built by pure javascript
+An online painter application built by Javascript
+
+**See Demo**
+
+[DEMO]
+
+[DEMO]:http://paint.tantanguanguan.com
