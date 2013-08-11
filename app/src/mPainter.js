@@ -31,7 +31,7 @@
                 points: [],
                 element_index: 0,
                 painter_radius: 5,
-                color: "blue"
+                color: "rgb(0, 0, 255)"  // blue
             };
 
             this._initMouseEvents();
@@ -154,7 +154,7 @@
         for (var i = 1; i < n - 1; i++) {
             d += points[i].x + "," + points[i].y + " ";
         }
-        d += "T" + points[n-1].x + "," + points[n-1].y;
+        d += "T" + points[n - 1].x + "," + points[n - 1].y;
         return d;
     }
 

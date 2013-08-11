@@ -19,39 +19,18 @@ p,ul,li,ol {
 #paint-config ul {
     list-style-type:none;
 }
-
 #paint-config ul li {
-    width:100px;
+    width:50px;
     height:20px;
     margin:5px 0;
     display:inline-block;
 }
-
 .paint-color {
     width:100px;
     height:20px;
     vertical-align:middle;
     display:inline-block;
 }
-.gray {
-    background-color:gray;
-}
-.green {
-    background-color:green;
-}
-.yellow {
-    background-color:yellow;
-}
-.black {
-    background-color:black;
-}
-.red {
-    background-color:red;
-}
-.blue {
-    background-color:blue;
-}
-
 #fork-me {
 	position: absolute;
 	top:0;

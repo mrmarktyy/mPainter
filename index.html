@@ -14,17 +14,21 @@
         <svg id="my-svg" width="980" height="500"> </svg>
         <div id="paint-config">
             <div id="color-selector">
-                <p>Pick Color:</p>
-                <span>Current <div class="paint-color blue"> </div></span>
+                <span>Pick Color: <div class="paint-color" style="background-color:#0000FF"> </div></span>
                 <ul>
-                    <li class="red"></li>
-                    <li class="blue"></li>
-                    <li class="green"></li>
-                    <li class="yellow"></li>
-                    <li class="gray"></li>
-                    <li class="black"></li>
+                    <li style="background-color:#FF0000"></li>
+                    <li style="background-color:#0000FF"></li>
+                    <li style="background-color:#00FF00"></li>
+                    <li style="background-color:#FFFF00"></li>
+                    <li style="background-color:#FFA500"></li>
+                    <li style="background-color:#FF00FF"></li>
+                    <li style="background-color:#800080"></li>
+                    <li style="background-color:#000000"></li>
                 </ul>
+                Customize Color <input id="custom-color" type="text" placeholder="#0000FF" />
             </div>
+
+            <hr />
             <button id="clear-canvas">Clear Canvas</button>
         </div>
     </div>
@@ -41,13 +45,29 @@
         });
 
         $(document).on("click", "#color-selector ul li", function() {
-            var color = $(this).prop("class");
-            var paintColorDiv = $('#color-selector .paint-color'),
-                classList = paintColorDiv.prop('class').replace(/\s.*/, " " + color);
-            paintColorDiv.prop("class", classList);
+            var hex = $(this).css("background-color");
+            $("#color-selector .paint-color").css('background-color', hex);
+            $('#custom-color').val(rgb2hex(hex).toUpperCase());
 
-            mPainter.setColor(color);
+            mPainter.setColor(hex);
         });
+
+        $("#custom-color").keyup(function() {
+            var hex = $(this).val();
+            // valid hex
+            if (/^#([A-Fa-f0-9]{3}$)|([A-Fa-f0-9]{6}$)/.test(hex)) {
+                $("#color-selector .paint-color").css('background-color', hex);
+                mPainter.setColor(hex);
+            }
+        })
+
+        function rgb2hex(rgb){
+            rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+            return (rgb && rgb.length === 4) ? "#" +
+                ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
+        }
     </script>
 </body>
 </html>
