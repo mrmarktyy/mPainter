@@ -117,9 +117,9 @@
             this._internal.element_index = 0;
             this._internal.is_mousedown = false;
 
-            var svg = this._internal_el;
+            var svg = this._internal.el;
             while (svg.lastChild) {
-                svg.remove(svg.lastChild);
+                svg.removeChild(svg.lastChild);
             }
 
         }
