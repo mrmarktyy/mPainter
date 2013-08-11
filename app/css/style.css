@@ -1,0 +1,53 @@
+p,ul,li,ol {
+    -webkit-margin-before:0;
+    -webkit-margin-after:0;
+    -webkit-margin-start:0;
+    -webkit-margin-end:0;
+    -webkit-padding-start:0;
+    padding:0;
+    marigin:0;
+}
+.container {
+    width:980px;
+    margin:0 auto;
+}
+#my-svg {
+    border: 1px solid black;
+    cursor:none;
+}
+
+#paint-config ul {
+    list-style-type:none;
+}
+
+#paint-config ul li {
+    width:100px;
+    height:20px;
+    margin:5px 0;
+    display:inline-block;
+}
+
+.paint-color {
+    width:100px;
+    height:20px;
+    vertical-align:middle;
+    display:inline-block;
+}
+.gray {
+    background-color:gray;
+}
+.green {
+    background-color:green;
+}
+.yellow {
+    background-color:yellow;
+}
+.black {
+    background-color:black;
+}
+.red {
+    background-color:red;
+}
+.blue {
+    background-color:blue;
+}

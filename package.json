@@ -1,0 +1,20 @@
+{
+  "name": "mPainter",
+  "version": "0.0.1",
+  "description": "An online painter application built by pure javascript",
+  "main": "index.html",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mrmarktyy/mPainter.git"
+  },
+  "author": "Mark Zhou",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mrmarktyy/mPainter/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.2",
+    "grunt-contrib-uglify": "~0.2.2"
+  }
+}

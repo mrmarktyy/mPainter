@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>mPainter</title>
+    <link href="app/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>mPainter Demo</h1>
+        <span style="float:right;">v0.0.1</span>
+        <svg id="my-svg" width="980" height="500"> </svg>
+        <div id="paint-config">
+            <div id="color-selector">
+                <p>Pick Color:</p>
+                <span>Current <div class="paint-color blue"> </div></span>
+                <ul>
+                    <li class="red"></li>
+                    <li class="blue"></li>
+                    <li class="green"></li>
+                    <li class="yellow"></li>
+                    <li class="gray"></li>
+                    <li class="black"></li>
+                </ul>
+            </div>
+            <button id="clear-canvas">Clear Canvas</button>
+        </div>
+    </div>
+    <script src="vendor/jquery.js"></script>
+    <script src="app/src/mPainter.js"></script>
+    <script>
+    	var config = {
+    		id: "my-svg"
+    	};
+    	var mPainter = new mPainter(config);
+
+    	$(document).on('click', '#clear-canvas', function() {
+	     	mPainter.reset();
+    	});
+
+	 	$(document).on("click", "#color-selector ul li", function() {
+	        var color = $(this).prop("class");
+	        var paintColorDiv = $('#color-selector .paint-color'),
+	            classList = paintColorDiv.prop('class').replace(/\s.*/, " " + color);
+	        paintColorDiv.prop("class", classList);
+
+	        mPainter.setColor(color);
+    	});
+    </script>
+</body>
+</html>
