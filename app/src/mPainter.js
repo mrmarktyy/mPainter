@@ -31,7 +31,7 @@
                 points: [],
                 element_index: 0,
                 painter_radius: 3,
-                color: "#0000FF"  // blue
+                color: "#FF0000"  // red
             };
 
             this._initMouseEvents();
