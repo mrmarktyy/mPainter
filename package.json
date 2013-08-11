@@ -1,6 +1,6 @@
 {
   "name": "mPainter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An online painter application built by pure javascript",
   "main": "index.html",
   "repository": {

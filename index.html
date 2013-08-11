@@ -14,7 +14,7 @@
         <svg id="my-svg" width="980" height="500"> </svg>
         <div id="paint-config">
             <div id="color-selector">
-                <span>Pick Color: <div class="paint-color" style="background-color:#0000FF"> </div></span>
+                <span>Pick Color: <div class="paint-color" style="background-color:#0000FF;"> </div></span>
                 <ul>
                     <li style="background-color:#FF0000"></li>
                     <li style="background-color:#0000FF"></li>
@@ -27,7 +27,15 @@
                 </ul>
                 Customize Color <input id="custom-color" type="text" placeholder="#0000FF" />
             </div>
-
+            <hr />
+            <div id="size-selector">
+                <span>Painter Size: </span>
+                <ul>
+                    <li class="selected"><div class="paint-size" style="background-color:#0000FF;width:6px;height:6px;"></div></li>
+                    <li><div class="paint-size" style="background-color:#0000FF;width:10px;height:10px;"></div></li>
+                    <li><div class="paint-size" style="background-color:#0000FF;width:16px;height:16px;"></div></li>
+                </ul>
+            </div>
             <hr />
             <button id="clear-canvas">Clear Canvas</button>
         </div>
@@ -44,14 +52,20 @@
             mPainter.reset();
         });
 
+        /**
+         * Color Selector
+         */
         $(document).on("click", "#color-selector ul li", function() {
             var hex = $(this).css("background-color");
-            $("#color-selector .paint-color").css('background-color', hex);
-            $('#custom-color').val(rgb2hex(hex).toUpperCase());
+            $("#color-selector .paint-color, .paint-size").css("background-color", hex);
+            $("#custom-color").val(rgb2hex(hex).toUpperCase());
 
             mPainter.setColor(hex);
         });
 
+        /**
+         * Custom Color
+         */
         $("#custom-color").keyup(function() {
             var hex = $(this).val();
             // valid hex
@@ -60,6 +74,18 @@
                 mPainter.setColor(hex);
             }
         })
+
+        /**
+         * Size Selector
+         */
+        $(document).on('click', '#size-selector ul li', function () {
+            $("#size-selector ul li").removeClass("selected");
+            $(this).addClass("selected");
+
+            var width = $(this).find("div.paint-size").css("width")
+                radius = width.substring(0, width.length - 2) / 2;
+            mPainter.setPainterSize(radius);
+        });
 
         function rgb2hex(rgb){
             rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);

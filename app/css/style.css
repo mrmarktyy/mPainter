@@ -16,14 +16,33 @@ p,ul,li,ol {
     cursor:none;
 }
 
-#paint-config ul {
-    list-style-type:none;
+#color-selector ul {
+    list-style:none;
 }
-#paint-config ul li {
+#color-selector ul li {
     width:50px;
     height:20px;
     margin:5px 0;
     display:inline-block;
+}
+#size-selector ul {
+	list-style:none;
+	display:table;
+}
+#size-selector ul li {
+	margin:10px 0;
+	width:40px;
+	height:40px;
+	display:table-cell;
+	vertical-align:middle;
+	border: 1px solid #FFFFFF;
+}
+#size-selector ul li.selected, #size-selector ul li:hover {
+	border: 1px solid #999999;
+}
+.paint-size {
+	border-radius: 50%;
+	margin:0 auto;
 }
 .paint-color {
     width:100px;

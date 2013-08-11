@@ -30,8 +30,8 @@
                 is_mousedown: false,
                 points: [],
                 element_index: 0,
-                painter_radius: 5,
-                color: "rgb(0, 0, 255)"  // blue
+                painter_radius: 3,
+                color: "#0000FF"  // blue
             };
 
             this._initMouseEvents();
@@ -110,6 +110,10 @@
 
         setColor: function (color) {
             this._internal.color = color;
+        },
+
+        setPainterSize: function (radius) {
+            this._internal.painter_radius = radius;
         },
 
         reset: function () {
