@@ -29,23 +29,23 @@
     <script src="vendor/jquery.js"></script>
     <script src="app/src/mPainter.js"></script>
     <script>
-    	var config = {
-    		id: "my-svg"
-    	};
-    	var mPainter = new mPainter(config);
+        var config = {
+            id: "my-svg"
+        };
+        var mPainter = new mPainter(config);
 
-    	$(document).on('click', '#clear-canvas', function() {
-	     	mPainter.reset();
-    	});
+        $(document).on('click', '#clear-canvas', function() {
+            mPainter.reset();
+        });
 
-	 	$(document).on("click", "#color-selector ul li", function() {
-	        var color = $(this).prop("class");
-	        var paintColorDiv = $('#color-selector .paint-color'),
-	            classList = paintColorDiv.prop('class').replace(/\s.*/, " " + color);
-	        paintColorDiv.prop("class", classList);
+        $(document).on("click", "#color-selector ul li", function() {
+            var color = $(this).prop("class");
+            var paintColorDiv = $('#color-selector .paint-color'),
+                classList = paintColorDiv.prop('class').replace(/\s.*/, " " + color);
+            paintColorDiv.prop("class", classList);
 
-	        mPainter.setColor(color);
-    	});
+            mPainter.setColor(color);
+        });
     </script>
 </body>
 </html>
