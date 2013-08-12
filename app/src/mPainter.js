@@ -48,6 +48,7 @@
                 e.originalEvent.preventDefault();
 
                 addPoint(getPointFromEvent(e));
+
                 _self._internal.is_mousedown = true;
             });
              /**
@@ -69,9 +70,7 @@
             $(document).on("mouseup", "#" + this.options.id, function (e) {
                 if (_self._internal.is_mousedown === true) {
                     log('Mouse up: ' + e.offsetX + ',' + e.offsetY);
-                    var point = getPointFromEvent(e);
-
-                    addPoint(point);
+                    addPoint(getPointFromEvent(e));
 
                     _endElement();
                 }
@@ -92,7 +91,6 @@
                 if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
                     if (_self._internal.is_mousedown === true) {
                         log('Mouse out: ' + e.offsetX + ',' + e.offsetY);
-
                         _endElement();
                     }
 
@@ -151,7 +149,7 @@
                 "stroke": _self._internal.color,
                 "stroke-width": _self._internal.painter_radius * 2,
                 "stroke-linecap": "round",
-                "opacity": "0.5"
+                "opacity": _self._internal.opacity / 2
             });
             _self._internal.el.appendChild(path);
         }
