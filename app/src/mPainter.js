@@ -1,14 +1,13 @@
-/*gloabls $:false */
+/* global $ */
 (function (window, undefined) {
     "use strict";
 
-    var mPainter = window.mPainter || {};
-
-    var _self;
+    var mPainter = window.mPainter || {},
+        _self;
 
     mPainter = function (options) {
-        this._init(options);
         _self = this;
+        this._init(options);
     };
 
     mPainter.prototype = {
@@ -24,13 +23,15 @@
             this.options = $.extend({}, defaults, options);
 
             this._internal = {
-                el: document.getElementById(this.options.id),
+                el: get(this.options.id),
 
                 tool: "paint",
+                element_index: 0,
+
                 is_mousedown: false,
                 points: [],
-                element_index: 0,
                 painter_radius: 3,
+                opacity: 1,
                 color: "#FF0000"  // red
             };
 
@@ -72,8 +73,7 @@
 
                     addPoint(point);
 
-                    _self._clear();
-                    _self._internal.element_index ++;
+                    _endElement();
                 }
             });
             /**
@@ -90,22 +90,16 @@
                 // check if truly mouse out from svg element
                 var toElement = e.toElement ? e.toElement : e.relatedTarget;
                 if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
-                    //if (mouseDown === true) {
-                    log('Mouse out: ' + e.offsetX + ',' + e.offsetY);
+                    if (_self._internal.is_mousedown === true) {
+                        log('Mouse out: ' + e.offsetX + ',' + e.offsetY);
 
-                    _self._clear();
-                    _self._internal.element_index ++;
-                    //}
+                        _endElement();
+                    }
 
                     removeCursor();
                 }
             });
 
-        },
-
-        _clear: function () {
-            this._internal.is_mousedown = false;
-            this._internal.points = [];
         },
 
         setColor: function (color) {
@@ -114,6 +108,10 @@
 
         setPainterSize: function (radius) {
             this._internal.painter_radius = radius;
+        },
+
+        setOpacity: function (opacity) {
+            this._internal.opacity = opacity;
         },
 
         reset: function () {
@@ -142,11 +140,19 @@
 
     function drawPath() {
         var path_id = _self.options.element_prefix + _self._internal.element_index,
-            path = document.getElementById(path_id);
+            path = get(path_id);
         if (path) {
             path.setAttribute("d", makeD());
         } else {
-            path = makeElement("path", {"id": path_id, "d": makeD(), "fill": "none", "stroke": _self._internal.color, "stroke-width": _self._internal.painter_radius * 2, "stroke-linecap": "round"});
+            path = makeElement("path", {
+                "id": path_id,
+                "d": makeD(),
+                "fill": "none",
+                "stroke": _self._internal.color,
+                "stroke-width": _self._internal.painter_radius * 2,
+                "stroke-linecap": "round",
+                "opacity": "0.5"
+            });
             _self._internal.el.appendChild(path);
         }
     }
@@ -176,13 +182,13 @@
     }
 
     function updateCursorPosition(e) {
-        var cursor = document.getElementById(_self.options.cursor_id);
+        var cursor = get(_self.options.cursor_id);
         cursor.setAttribute("cx", e.offsetX);
         cursor.setAttribute("cy", e.offsetY);
     }
 
     function removeCursor() {
-        var cursor = document.getElementById(_self.options.cursor_id);
+        var cursor = get(_self.options.cursor_id);
         if (cursor) {
             cursor.parentNode.removeChild(cursor);
         }
@@ -191,6 +197,17 @@
     /**
      * Helper funcions
      */
+
+    function _endElement() {
+        _self._internal.is_mousedown = false;
+        _self._internal.points = [];
+
+        var element = get(_self.options.element_prefix + _self._internal.element_index);
+        element.setAttribute("opacity", _self._internal.opacity);
+
+        _self._internal.element_index ++;
+    }
+
     function getPointFromEvent(e) {
         return {
             x: e.offsetX,
@@ -202,6 +219,10 @@
         if (_self.options.debug === true) {
             console.log(data);
         }
+    }
+
+    function get(id) {
+        return document.getElementById(id);
     }
 
     window.mPainter = mPainter;
