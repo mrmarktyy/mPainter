@@ -25,7 +25,8 @@
             this._internal = {
                 el: get(this.options.id),
 
-                tool: "paint",
+                tool: "PAINT",
+
                 element_index: 0,
 
                 is_mousedown: false,
@@ -43,7 +44,7 @@
              * Mouse down
              */
             $(document).on("mousedown", "#" + this.options.id, function (e) {
-                log('Mouse down: ' + e.offsetX + ',' + e.offsetY);
+                log("Mouse down: " + e.offsetX + "," + e.offsetY);
                 // Fix dragging in svg with text cursor issue
                 e.originalEvent.preventDefault();
 
@@ -56,7 +57,7 @@
              */
             $(document).on("mousemove", "#" + this.options.id, function (e) {
                 if (_self._internal.is_mousedown === true) {
-                    log('Mouse move to: ' + e.offsetX + ',' + e.offsetY);
+                    log("Mouse move to: " + e.offsetX + "," + e.offsetY);
 
                     addPoint(getPointFromEvent(e));
                 }
@@ -69,7 +70,7 @@
             // TODO: Add throttle
             $(document).on("mouseup", "#" + this.options.id, function (e) {
                 if (_self._internal.is_mousedown === true) {
-                    log('Mouse up: ' + e.offsetX + ',' + e.offsetY);
+                    log("Mouse up: " + e.offsetX + "," + e.offsetY);
                     addPoint(getPointFromEvent(e));
 
                     _endElement();
@@ -79,7 +80,7 @@
              * Mouse enter
              */
             $(document).on("mouseenter", "#" + this.options.id, function (e) {
-                log('Mouse enter', e);
+                log("Mouse enter", e);
                 newCursor(e);
             });
             /**
@@ -90,7 +91,7 @@
                 var toElement = e.toElement ? e.toElement : e.relatedTarget;
                 if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
                     if (_self._internal.is_mousedown === true) {
-                        log('Mouse out: ' + e.offsetX + ',' + e.offsetY);
+                        log("Mouse out: " + e.offsetX + "," + e.offsetY);
                         _endElement();
                     }
 
@@ -110,6 +111,10 @@
 
         setOpacity: function (opacity) {
             this._internal.opacity = opacity;
+        },
+
+        setTool: function (tool) {
+            this._internal.tool = tool;
         },
 
         reset: function () {
@@ -132,27 +137,18 @@
     function addPoint(point) {
         var len = _self._internal.points.push(point);
         if (len > 2 && len % 2 === 0) {
-            drawPath();
+            draw();
         }
     }
 
-    function drawPath() {
-        var path_id = _self.options.element_prefix + _self._internal.element_index,
-            path = get(path_id);
-        if (path) {
-            path.setAttribute("d", makeD());
-        } else {
-            path = makeElement("path", {
-                "id": path_id,
-                "d": makeD(),
-                "fill": "none",
-                "stroke": _self._internal.color,
-                "stroke-width": _self._internal.painter_radius * 2,
-                "stroke-linecap": "round",
-                "opacity": _self._internal.opacity / 2
-            });
-            _self._internal.el.appendChild(path);
+    function makeElement(tag, attrs) {
+        var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (var k in attrs) {
+            if (attrs.hasOwnProperty(k)) {
+                el.setAttribute(k, attrs[k]);
+            }
         }
+        return el;
     }
 
     function makeD() {
@@ -166,16 +162,98 @@
         return d;
     }
 
-    function makeElement(tag, attrs) {
-        var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-        for (var k in attrs) {
-            el.setAttribute(k, attrs[k]);
-        }
-        return el;
+    function _endElement() {
+        _self._internal.is_mousedown = false;
+        _self._internal.points = [];
+
+        var element = get(_self.options.element_prefix + _self._internal.element_index);
+        element.setAttribute("opacity", _self._internal.opacity);
+
+        _self._internal.element_index ++;
     }
 
+    function getPoint(index) {
+        if (index === undefined) {
+            return _self._internal.points[_self._internal.points.length - 1];
+        } else {
+            return _self._internal.points[index];
+        }
+    }
+
+    /**
+     * Draw
+     */
+    function draw() {
+        switch (_self._internal.tool) {
+        case "PAINT":
+            drawPath();
+            break;
+        case "LINE":
+            drawLine();
+            break;
+        default:
+            // TODO: throw error
+            break;
+        }
+
+    }
+
+    function drawPath() {
+        var element_id = _self.options.element_prefix + _self._internal.element_index,
+            path = get(element_id);
+        if (path) {
+            path.setAttribute("d", makeD());
+        } else {
+            path = makeElement("path", {
+                "id": element_id,
+                "d": makeD(),
+                "fill": "none",
+                "stroke": _self._internal.color,
+                "stroke-linecap": "round",
+                "stroke-width": _self._internal.painter_radius * 2,
+                "opacity": _self._internal.opacity / 2
+            });
+            _self._internal.el.appendChild(path);
+        }
+    }
+
+    function drawLine() {
+        var element_id = _self.options.element_prefix + _self._internal.element_index,
+            line = get(element_id);
+        if (line) {
+            var point = getPoint();
+            line.setAttribute("x2", point.x);
+            line.setAttribute("y2", point.y);
+        } else {
+            var point_1 = getPoint(0),
+                point_2 = getPoint();
+            line = makeElement("line", {
+                "id": element_id,
+                "x1": point_1.x,
+                "y1": point_1.y,
+                "x2": point_2.x,
+                "y2": point_2.y,
+                "stroke-linecap": "round",
+                "stroke-width": _self._internal.painter_radius * 2,
+                "stroke": _self._internal.color,
+                "opacity": _self._internal.opacity / 2
+            });
+            _self._internal.el.appendChild(line);
+        }
+    }
+
+    /**
+     * Cursor
+     */
     function newCursor(e) {
-        var cursor = makeElement('circle', {"id": _self.options.cursor_id, "cx": e.offsetX, "cy": e.offsetY, "r": _self._internal.painter_radius, "stroke": _self._internal.color, "fill": _self._internal.color});
+        var cursor = makeElement("circle", {
+            "id": _self.options.cursor_id,
+            "cx": e.offsetX,
+            "cy": e.offsetY,
+            "r": _self._internal.painter_radius,
+            "stroke": _self._internal.color,
+            "fill": _self._internal.color
+        });
         _self._internal.el.appendChild(cursor);
     }
 
@@ -195,17 +273,6 @@
     /**
      * Helper funcions
      */
-
-    function _endElement() {
-        _self._internal.is_mousedown = false;
-        _self._internal.points = [];
-
-        var element = get(_self.options.element_prefix + _self._internal.element_index);
-        element.setAttribute("opacity", _self._internal.opacity);
-
-        _self._internal.element_index ++;
-    }
-
     function getPointFromEvent(e) {
         return {
             x: e.offsetX,
@@ -213,14 +280,14 @@
         };
     }
 
+    function get(id) {
+        return document.getElementById(id);
+    }
+
     function log(data) {
         if (_self.options.debug === true) {
             console.log(data);
         }
-    }
-
-    function get(id) {
-        return document.getElementById(id);
     }
 
     window.mPainter = mPainter;

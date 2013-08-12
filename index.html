@@ -9,21 +9,31 @@
     <a href="https://github.com/mrmarktyy/mPainter"><img id="fork-me" alt="Fork me on GitHub" src="app/img/forkme.png" /></a>
     <div class="container">
         <h1>mPainter Demo</h1>
-        <span style="float:right;">v0.0.3</span>
+        <span style="float:right;">v0.0.4</span>
 
         <svg id="my-svg" width="980" height="500"> </svg>
         <div id="paint-config">
+            <div id="tool-kit">
+                Pick Tool:
+                <ul>
+                    <li class="selected" data-type="PAINT"><img src="app/img/pencil.svg" alt="Pencil Tool"/></li>
+                    <li data-type="LINE"><img src="app/img/line.svg" alt="Line Tool" /></li>
+                </ul>
+            </div>
+            <hr />
             <div id="color-selector">
                 <span>Pick Color: <div class="paint-color" style="background-color:#FF0000;"> </div></span>
                 <ul>
                     <li style="background-color:#FF0000"></li>
-                    <li style="background-color:#0000FF"></li>
-                    <li style="background-color:#00FF00"></li>
-                    <li style="background-color:#FFFF00"></li>
-                    <li style="background-color:#FFA500"></li>
-                    <li style="background-color:#FF00FF"></li>
-                    <li style="background-color:#800080"></li>
-                    <li style="background-color:#000000"></li>
+                    <li style="background-color:#0063DC"></li>
+                    <li style="background-color:#66CEFF"></li>
+                    <li style="background-color:#73BA37"></li>
+                    <li style="background-color:#FFCC33"></li>
+                    <li style="background-color:#E47911"></li>
+                    <li style="background-color:#FF0084"></li>
+                    <li style="background-color:#6441A5"></li>
+                    <li style="background-color:#C7C5E6"></li>
+                    <li style="background-color:#171515"></li>
                 </ul>
                 Customize Color <input id="custom-color" type="text" placeholder="#0000FF" />
             </div>
@@ -86,6 +96,16 @@
             var width = $(this).find("div.paint-size").css("width")
                 radius = width.substring(0, width.length - 2) / 2;
             mPainter.setPainterSize(radius);
+        });
+
+        /**
+         * Tool Kit
+         */
+        $(document).on('click', '#tool-kit ul li', function () {
+            $("#tool-kit ul li").removeClass("selected");
+            $(this).addClass("selected");
+
+            mPainter.setTool($(this).data("type"));
         });
 
         function rgb2hex(rgb){
