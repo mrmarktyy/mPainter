@@ -1,9 +1,18 @@
 Introduction
 ========
 
-An online painter application built by Javascript
+**mPainter** is a simple and easy to use SVG painting library, which will create or convert SVG element to be a painting board.
 
-[DEMO]
+Please see [DEMO]
+
+
+Getting Started
+------------
+
+1. Place the loader script before the closing body tag
+```
+<script src="app/src/mPainter.js"></script>
+```
 
 
 ## Road Map
