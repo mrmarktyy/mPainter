@@ -10,7 +10,6 @@ Getting Started
 ------------
 
 1. Place the loader script before the closing body tag
-
 ```
 <script src="app/src/mPainter.js"></script>
 ```
