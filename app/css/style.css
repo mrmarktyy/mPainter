@@ -36,8 +36,6 @@ p,ul,li,ol {
 	vertical-align:middle;
 	border: 1px solid #FFFFFF;
 }
-
-
 #size-selector ul li.selected, #size-selector ul li:hover,
 #tool-kit ul li.selected, #tool-kit ul li:hover
 {
@@ -56,9 +54,10 @@ p,ul,li,ol {
 	border-radius: 50%;
 	margin:0 auto;
 }
-.paint-color {
+#paint-color {
     width:100px;
     height:20px;
+    margin:0 10px 0 0;
     vertical-align:middle;
     display:inline-block;
 }

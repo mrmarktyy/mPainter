@@ -1,7 +1,7 @@
 {
   "name": "mPainter",
-  "version": "0.0.4",
-  "description": "An online painter application built by pure javascript",
+  "version": "0.0.5",
+  "description": "mPainter is a simple and easy to use SVG painting library, which will create or convert SVG element to be a painting board.",
   "main": "index.html",
   "repository": {
     "type": "git",

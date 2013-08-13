@@ -9,7 +9,7 @@
     <a href="https://github.com/mrmarktyy/mPainter"><img id="fork-me" alt="Fork me on GitHub" src="app/img/forkme.png" /></a>
     <div class="container">
         <h1>mPainter Demo</h1>
-        <span style="float:right;">v0.0.4</span>
+        <span style="float:right;">v0.0.5</span>
 
         <svg id="my-svg" width="980" height="500"> </svg>
         <div id="paint-config">
@@ -22,7 +22,7 @@
             </div>
             <hr />
             <div id="color-selector">
-                <span>Pick Color: <div class="paint-color" style="background-color:#FF0000;"> </div></span>
+                <span>Pick Color: <div id="paint-color" style="background-color:#FF0000;"> </div><input id="custom-color" type="text" placeholder="#0000FF" style="width:60px"/></span>
                 <ul>
                     <li style="background-color:#FF0000"></li>
                     <li style="background-color:#0063DC"></li>
@@ -35,7 +35,6 @@
                     <li style="background-color:#C7C5E6"></li>
                     <li style="background-color:#171515"></li>
                 </ul>
-                Customize Color <input id="custom-color" type="text" placeholder="#0000FF" />
             </div>
             <hr />
             <div id="size-selector">
@@ -54,7 +53,8 @@
     <script src="app/src/mPainter.js"></script>
     <script>
         var config = {
-            id: "my-svg"
+            id: "my-svg",
+            element_prefix: "elm_"
         };
         var mPainter = new mPainter(config);
 

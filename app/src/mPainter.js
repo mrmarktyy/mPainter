@@ -1,4 +1,3 @@
-/* global $ */
 (function (window, undefined) {
     "use strict";
 
@@ -20,7 +19,7 @@
                 element_prefix: "element_"
             };
 
-            this.options = $.extend({}, defaults, options);
+            this.options = _extend({}, defaults, options);
 
             this._internal = {
                 el: get(this.options.id),
@@ -43,10 +42,10 @@
             /**
              * Mouse down
              */
-            $(document).on("mousedown", "#" + this.options.id, function (e) {
+            get(this.options.id).addEventListener("mousedown", function (e) {
                 log("Mouse down: " + e.offsetX + "," + e.offsetY);
                 // Fix dragging in svg with text cursor issue
-                e.originalEvent.preventDefault();
+                e.preventDefault();
 
                 addPoint(getPointFromEvent(e));
 
@@ -55,7 +54,7 @@
              /**
              * Mouse move
              */
-            $(document).on("mousemove", "#" + this.options.id, function (e) {
+            get(this.options.id).addEventListener("mousemove", function (e) {
                 if (_self._internal.is_mousedown === true) {
                     log("Mouse move to: " + e.offsetX + "," + e.offsetY);
 
@@ -68,7 +67,7 @@
              * Mouse Up
              */
             // TODO: Add throttle
-            $(document).on("mouseup", "#" + this.options.id, function (e) {
+            get(this.options.id).addEventListener("mouseup", function (e) {
                 if (_self._internal.is_mousedown === true) {
                     log("Mouse up: " + e.offsetX + "," + e.offsetY);
                     addPoint(getPointFromEvent(e));
@@ -79,26 +78,28 @@
             /**
              * Mouse enter
              */
-            $(document).on("mouseenter", "#" + this.options.id, function (e) {
-                log("Mouse enter", e);
-                newCursor(e);
-            });
+            get(this.options.id).addEventListener("mouseover", function (e) {
+                if (isOutside(e, this)) {
+                    log("Mouse enter", e);
+
+                    newCursor(e);
+                }
+            }, false);
             /**
              * Mouse out
              */
-            $(document).on("mouseout", "#" + this.options.id, function (e) {
+            get(this.options.id).addEventListener("mouseout", function (e) {
                 // check if truly mouse out from svg element
                 var toElement = e.toElement ? e.toElement : e.relatedTarget;
                 if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
                     if (_self._internal.is_mousedown === true) {
                         log("Mouse out: " + e.offsetX + "," + e.offsetY);
+
                         _endElement();
                     }
-
                     removeCursor();
                 }
             });
-
         },
 
         setColor: function (color) {
@@ -167,7 +168,9 @@
         _self._internal.points = [];
 
         var element = get(_self.options.element_prefix + _self._internal.element_index);
-        element.setAttribute("opacity", _self._internal.opacity);
+        if (element) {
+            element.setAttribute("opacity", _self._internal.opacity);
+        }
 
         _self._internal.element_index ++;
     }
@@ -283,6 +286,31 @@
     function get(id) {
         return document.getElementById(id);
     }
+
+    // shallow copy
+    function _extend() {
+        var o = {};
+        for (var i = 0, n = arguments.length; i < n; i++) {
+            for (var key in arguments[i]) {
+                if (arguments[i].hasOwnProperty(key)) {
+                    o[key] = arguments[i][key];
+                }
+            }
+        }
+        return o;
+    }
+
+    function isOutside(evt, parent) {
+        var elem = evt.relatedTarget || evt.toElement || evt.fromElement;
+        while (elem && elem !== parent) {
+            elem = elem.parentNode;
+        }
+        if (elem !== parent) {
+            return true;
+        }
+        return false;
+    }
+
 
     function log(data) {
         if (_self.options.debug === true) {
