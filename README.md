@@ -1,7 +1,7 @@
 Introduction
 ========
 
-**mPainter** is a simple and easy to use SVG painting library, which will create or convert SVG element to be a painting board.
+**mPainter** is a simple, light-weighted, no dependency SVG painting library, which can easily create or convert SVG element to be a painting board.
 
 Please see [DEMO]
 
