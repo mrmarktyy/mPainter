@@ -29,6 +29,16 @@ var mPainter = new mPainter(config);
 
 4. More options available, please see documentation for more details.
 
+Browser Support
+--------------
+
+Chrome 4.0+
+Firefox 3.0+
+Safari 3.2+
+Opera 9.0+
+IE 9+
+
+Currently, It doesn't support on mobile/tablet devices. But it's coming soon...
 
 ## We're improving everyday !
 
@@ -41,5 +51,10 @@ var mPainter = new mPainter(config);
 * support various shapes (line, square, eclipse, etc)
 * support layer based functions including resize, flip, rotate, etc
 * and more...
+
+LICENCE
+-------
+
+## MIT
 
 [DEMO]:http://paint.tantanguanguan.com
