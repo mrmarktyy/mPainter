@@ -206,10 +206,10 @@
      */
     function draw() {
         switch (_internal.tool) {
-        case "PAINT":
+        case _internal.TOOLS.PAINT:
             drawPath();
             break;
-        case "LINE":
+        case _internal.TOOLS.LINE:
             drawLine();
             break;
         }
@@ -264,10 +264,10 @@
      */
     function newCur(e) {
         switch (_internal.tool) {
-        case "PAINT":
+        case _internal.TOOLS.PAINT:
             newPointerCur(e);
             break;
-        case "LINE":
+        case _internal.TOOLS.LINE:
             newCrossCur(e);
             break;
         }
