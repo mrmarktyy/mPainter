@@ -77,8 +77,7 @@
 
                 addPoint(getPointFromEvent(e));
             }
-
-            updateCursorPosition(e);
+            updateCurPosition(e);
         },
 
         _mouseUp: function (e) {
@@ -94,7 +93,7 @@
             if (isOutside(e, _internal.el)) {
                 log("Mouse enter", e);
 
-                newCursor(e);
+                newCur(e);
             }
         },
 
@@ -107,7 +106,7 @@
 
                     _endElement();
                 }
-                removeCursor();
+                removeCur();
             }
         },
 
@@ -263,7 +262,18 @@
     /**
      * Cursor
      */
-    function newCursor(e) {
+    function newCur(e) {
+        switch (_internal.tool) {
+        case "PAINT":
+            newPointerCur(e);
+            break;
+        case "LINE":
+            newCrossCur(e);
+            break;
+        }
+    }
+
+    function newPointerCur(e) {
         var cursor = makeElement("circle", {
             "id": _self.options.cursor_id,
             "cx": e.offsetX,
@@ -275,16 +285,30 @@
         _internal.el.appendChild(cursor);
     }
 
-    function updateCursorPosition(e) {
-        var cursor = get(_self.options.cursor_id);
-        cursor.setAttribute("cx", e.offsetX);
-        cursor.setAttribute("cy", e.offsetY);
+    function newCrossCur(e) {
+        var styleList = "";
+        if (_internal.el.getAttribute("style")) {
+            styleList = _internal.el.getAttribute("class");
+        }
+        _internal.el.setAttribute("style", styleList + "cursor:crosshair;");
     }
 
-    function removeCursor() {
+    function updateCurPosition(e) {
         var cursor = get(_self.options.cursor_id);
         if (cursor) {
+            cursor.setAttribute("cx", e.offsetX);
+            cursor.setAttribute("cy", e.offsetY);
+        }
+    }
+
+    function removeCur() {
+        var cursor = get(_self.options.cursor_id),
+            styleList = _internal.el.getAttribute('style');
+        if (cursor) {
             cursor.parentNode.removeChild(cursor);
+        }
+        if (styleList) {
+            _internal.el.setAttribute("style", styleList.replace(/cursor:crosshair;/, ''));
         }
     }
 
