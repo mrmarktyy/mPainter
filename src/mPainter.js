@@ -248,13 +248,11 @@
         }
 
         // redo & undo
-        for (var i in _internal.redo) {
-            if (_internal.redo.hasOwnProperty(i)) {
-                var o = _internal.redo[i],
-                    revs = _internal.redo[i].value === "d" ? "a" : "d";
-                _internal.undo.push({id: _internal.redo[i].id, value: revs});
-                _internal.undo.push({id: _internal.redo[i].id, value: _internal.redo[i].value});
-            }
+        for (var i = _internal.redo.length - 1; i >= 0; i--) {
+            _internal.undo.push({id: _internal.redo[i].id, value: _internal.redo[i].value === "d" ? "a" : "d"});
+        }
+        for (var j = 0, n = _internal.redo.length; j < n; j++) {
+            _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
         }
         _internal.undo.push({id: _index, value: "d"});
         _internal.redo = [];
