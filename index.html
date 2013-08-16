@@ -67,7 +67,7 @@
          */
         $(document).on("click", "#color-selector ul li", function() {
             var hex = $(this).css("background-color");
-            $("#color-selector .paint-color, .paint-size").css("background-color", hex);
+            $("#paint-color, .paint-size").css("background-color", hex);
             $("#custom-color").val(rgb2hex(hex).toUpperCase());
 
             mPainter.setColor(hex);
