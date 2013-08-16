@@ -25,18 +25,22 @@
 
             _internal = {
                 el: get(this.options.id),
+                undo: [],
+                redo: [],
 
                 is_mousedown: false,
-                element_index: 0,
                 canvasStack: {
                     head: -1,
                     elements: []
                 },
 
-                tool: this.options.tool,
-                painter_radius: 3,
-                opacity: 1,
-                color: "#FF0000",  // red
+                config: {
+                    element_index: 0,
+                    tool: this.options.tool,
+                    painter_radius: 3,
+                    opacity: 1,
+                    color: "#FF0000"  // red
+                },
 
                 EVENTS: {
                     "mousedown": this._mouseDown,
@@ -114,22 +118,70 @@
         },
 
         setColor: function (color) {
-            _internal.color = color;
+            _internal.config.color = color;
         },
 
         setPainterSize: function (radius) {
-            _internal.painter_radius = radius;
+            _internal.config.painter_radius = radius;
         },
 
         setOpacity: function (opacity) {
-            _internal.opacity = opacity;
+            _internal.config.opacity = opacity;
         },
 
         setTool: function (tool_name) {
             if (_internal.TOOLS[tool_name]) {
-                _internal.tool = _internal.TOOLS[tool_name];
+                _internal.config.tool = _internal.TOOLS[tool_name];
             } else {
                 throw "TOOL: " + tool_name + " is not available.";
+            }
+        },
+
+        undo: function () {
+            if (_internal.undo.length) {
+                var undo = _internal.undo.pop(),
+                    _index = undo.id,
+                    _value = undo.value,
+                    revs = _value === "d" ? "a" : "d";
+
+                // push redo
+                _internal.redo.push({id: _index, value: revs});
+
+                if (_value === "d") {
+                    var elm = get(this.options.element_prefix + _index);
+                    _internal.canvasStack.elements[_index].is_delelted = true;
+                    if (elm) {
+                        elm.parentNode.removeChild(elm);
+                    }
+                } else {
+                    var config = _internal.canvasStack.elements[_index].config;
+                    config.opacity = config.opacity * 2;
+                    draw(config);
+                }
+            }
+        },
+
+        redo: function () {
+            if (_internal.redo.length) {
+                var redo = _internal.redo.pop(),
+                    _index = redo.id,
+                    _value = redo.value,
+                    revs = _value === "d" ? "a" : "d";
+
+                // push undo
+                _internal.undo.push({id: _index, value: revs});
+
+                if (_value === "d") {
+                    var elm = get(this.options.element_prefix + _index);
+                    _internal.canvasStack.elements[_index].is_delelted = true;
+                    if (elm) {
+                        elm.parentNode.removeChild(elm);
+                    }
+                } else {
+                    var config = _internal.canvasStack.elements[_index].config;
+                    config.opacity = config.opacity * 2;
+                    draw(config);
+                }
             }
         },
 
@@ -138,16 +190,15 @@
         },
 
         reset: function () {
-            _internal.element_index = 0;
+            _internal.config.element_index = 0;
             _internal.canvasStack = {
                 head: -1,
                 elements: []
-            },
+            };
             _internal.is_mousedown = false;
 
-            var svg = _internal.el;
-            while (svg.lastChild) {
-                svg.removeChild(svg.lastChild);
+            while (_internal.el.lastChild) {
+                _internal.el.removeChild(_internal.el.lastChild);
             }
         }
 
@@ -158,7 +209,7 @@
     function addPoint(point) {
         var len = getPoints().push(point);
         if (len > 2 && len % 2 === 0) {
-            draw();
+            draw(_internal.config);
         }
     }
 
@@ -172,44 +223,17 @@
         return el;
     }
 
-    function makeD() {
-        var points = getPoints();
-        var d = "M" + points[0].x + "," + points[0].y + " Q",
-            n = points.length;
-        for (var i = 1; i < n - 1; i++) {
-            d += points[i].x + "," + points[i].y + " ";
-        }
-        d += "T" + points[n - 1].x + "," + points[n - 1].y;
-        return d;
-    }
-
-    function getPoint(index) {
-        var points = getPoints();
-        if (index === undefined) {
-            return points[points.length - 1];
-        } else {
-            return points[index];
-        }
-    }
-
-    function getPoints(index) {
-        var _index = index ? index : _internal.element_index;
-        if (_internal.canvasStack.elements[_index] === undefined) {
-            if (_index === _internal.element_index) {
-                return _initElements(_index).points;
-            }
-            return undefined;
-        }
-        return _internal.canvasStack.elements[_index].points;
-    }
-
     function _initElements(index) {
         _internal.canvasStack.elements[index] = {
-            tool: _internal.tool,
-            painter_radius: _internal.painter_radius,
-            opacity: _internal.opacity,
-            color: _internal.color,
-            points: []
+            config: {
+                element_index: index,
+                tool: _internal.config.tool,
+                painter_radius: _internal.config.painter_radius,
+                opacity: _internal.config.opacity,
+                color: _internal.config.color,
+            },
+            points: [],
+            is_delelted: false
         };
         return _internal.canvasStack.elements[index];
     }
@@ -217,13 +241,25 @@
     function endElement() {
         _internal.is_mousedown = false;
 
-        var element = get(_self.options.element_prefix + _internal.element_index);
+        var _index = _internal.config.element_index,
+            element = get(_self.options.element_prefix + _index);
         if (element) {
-            element.setAttribute("opacity", _internal.opacity);
+            element.setAttribute("opacity", _internal.config.opacity);
         }
 
-        _internal.canvasStack.head ++;
-        _internal.element_index ++;
+        // redo & undo
+        for (var i in _internal.redo) {
+            if (_internal.redo.hasOwnProperty(i)) {
+                var o = _internal.redo[i],
+                    revs = _internal.redo[i].value === "d" ? "a" : "d";
+                _internal.undo.push({id: _internal.redo[i].id, value: revs});
+                _internal.undo.push({id: _internal.redo[i].id, value: _internal.redo[i].value});
+            }
+        }
+        _internal.undo.push({id: _index, value: "d"});
+        _internal.redo = [];
+
+        _internal.canvasStack.head = _internal.config.element_index ++;
     }
 
     function _eventHandler(e) {
@@ -235,46 +271,60 @@
     /**
      * Draw
      */
-    function draw() {
-        switch (_internal.tool) {
+    function draw(config) {
+        switch (config.tool) {
         case _internal.TOOLS.PAINT:
-            drawPath();
+            drawPath(config);
             break;
         case _internal.TOOLS.LINE:
-            drawLine();
+            drawLine(config);
             break;
         }
     }
 
-    function drawPath() {
-        var element_id = _self.options.element_prefix + _internal.element_index,
+    function drawPath(config) {
+        var element_id = _self.options.element_prefix + config.element_index,
             path = get(element_id);
         if (path) {
-            path.setAttribute("d", makeD());
+            path.setAttribute("d", makeD(config.element_index));
         } else {
             path = makeElement("path", {
                 "id": element_id,
-                "d": makeD(),
+                "d": makeD(config.element_index),
                 "fill": "none",
-                "stroke": _internal.color,
+                "stroke": config.color,
                 "stroke-linecap": "round",
-                "stroke-width": _internal.painter_radius * 2,
-                "opacity": _internal.opacity / 2
+                "stroke-width": config.painter_radius * 2,
+                "opacity": config.opacity / 2
             });
             _internal.el.appendChild(path);
         }
     }
 
-    function drawLine() {
-        var element_id = _self.options.element_prefix + _internal.element_index,
+    function makeD(index) {
+        var points = getPoints(index),
+            len = points.length,
+            // fix for undo/redo odd number of points, need refactor
+            last = len % 2 === 0 ? len - 1 : len - 2;
+        var d = "M" + points[0].x + "," + points[0].y + " Q",
+            n = points.length;
+        for (var i = 1; i < last; i++) {
+            d += points[i].x + "," + points[i].y + " ";
+        }
+        d += "T" + points[last].x + "," + points[last].y;
+        return d;
+    }
+
+    function drawLine(config) {
+        var element_id = _self.options.element_prefix + config.element_index,
             line = get(element_id);
         if (line) {
-            var point = getPoint();
+            var point = getPoint(config.element_index);
             line.setAttribute("x2", point.x);
             line.setAttribute("y2", point.y);
         } else {
-            var point_1 = getPoint(0),
-                point_2 = getPoint();
+            var point_1 = getPoint(config.element_index, 0),
+                point_2 = getPoint(config.element_index);
             line = makeElement("line", {
                 "id": element_id,
                 "x1": point_1.x,
@@ -282,11 +332,32 @@
                 "x2": point_2.x,
                 "y2": point_2.y,
                 "stroke-linecap": "round",
-                "stroke-width": _internal.painter_radius * 2,
-                "stroke": _internal.color,
-                "opacity": _internal.opacity / 2
+                "stroke-width": config.painter_radius * 2,
+                "stroke": config.color,
+                "opacity": config.opacity / 2
             });
+
             _internal.el.appendChild(line);
+        }
+    }
+
+    function getPoints(index) {
+        var _index = index === undefined ? _internal.config.element_index : index;
+        if (_internal.canvasStack.elements[_index] === undefined) {
+            if (_index === _internal.config.element_index) {
+                return _initElements(_index).points;
+            }
+            return undefined;
+        }
+        return _internal.canvasStack.elements[_index].points;
+    }
+
+    function getPoint(elm_index, point_index) {
+        var points = getPoints(elm_index);
+        if (point_index === undefined) {
+            return points[points.length - 1];
+        } else {
+            return points[point_index];
         }
     }
 
@@ -294,7 +365,7 @@
      * Cursor
      */
     function newCur(e) {
-        switch (_internal.tool) {
+        switch (_internal.config.tool) {
         case _internal.TOOLS.PAINT:
             newPointerCur(e);
             break;
@@ -309,9 +380,9 @@
             "id": _self.options.cursor_id,
             "cx": e.offsetX,
             "cy": e.offsetY,
-            "r": _internal.painter_radius,
-            "stroke": _internal.color,
-            "fill": _internal.color
+            "r": _internal.config.painter_radius,
+            "stroke": _internal.config.color,
+            "fill": _internal.config.color
         });
         _internal.el.appendChild(cursor);
     }

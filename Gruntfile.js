@@ -15,8 +15,8 @@ module.exports = function(grunt) {
                 banner: bannerContent,
             },
             target: {
-                src: ['app/src/**/*.js'],
-                dest: 'app/dist/<%= pkg.name %>.min.js'
+                src: ['src/**/*.js'],
+                dest: 'dist/<%= pkg.name %>.min.js'
             }
         
         },
@@ -26,7 +26,7 @@ module.exports = function(grunt) {
                 trailing: true
             },
             target: {
-                src : ['app/src/**/*.js']
+                src : ['src/**/*.js']
             }
         }
     });

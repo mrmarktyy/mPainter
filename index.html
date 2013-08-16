@@ -9,7 +9,7 @@
     <a href="https://github.com/mrmarktyy/mPainter"><img id="fork-me" alt="Fork me on GitHub" src="img/forkme.png" /></a>
     <div class="container">
         <h1>mPainter Demo</h1>
-        <span style="float:right;">v0.0.5</span>
+        <span style="float:right;">v0.1.0</span>
 
         <svg id="my-svg" width="980" height="500"> </svg>
         <div id="paint-config">
@@ -46,7 +46,9 @@
                 </ul>
             </div>
             <hr />
-            <button id="clear-canvas">Clear Canvas</button>
+            <button id="canvas-clear">Clear Canvas</button>
+            <button id="canvas-undo">Undo</button>
+            <button id="canvas-redo">Redo</button>
         </div>
     </div>
     <script src="vendor/jquery.js"></script>
@@ -58,10 +60,18 @@
         };
         var mPainter = new mPainter(config);
 
-        $(document).on('click', '#clear-canvas', function() {
+        /**
+         * Buttons
+         */
+        $(document).on('click', '#canvas-clear', function() {
             mPainter.reset();
         });
-
+        $(document).on('click', '#canvas-undo', function() {
+            mPainter.undo();
+        });
+        $(document).on('click', '#canvas-redo', function() {
+            mPainter.redo();
+        });
         /**
          * Color Selector
          */
