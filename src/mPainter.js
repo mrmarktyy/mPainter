@@ -17,7 +17,8 @@
                 debug: false,
                 id: "mysvg",
                 cursor_id: "cursor",
-                element_prefix: "element_"
+                element_prefix: "element_",
+                tool: "PAINT"
             };
 
             this.options = _extend({}, defaults, options);
@@ -25,11 +26,14 @@
             _internal = {
                 el: get(this.options.id),
 
-                tool: undefined,
-                element_index: 0,
-
                 is_mousedown: false,
-                points: [],
+                element_index: 0,
+                canvasStack: {
+                    head: -1,
+                    elements: []
+                },
+
+                tool: this.options.tool,
                 painter_radius: 3,
                 opacity: 1,
                 color: "#FF0000",  // red
@@ -49,7 +53,6 @@
 
             };
 
-            this.setTool(_internal.TOOLS.PAINT);
             this._initEvents();
         },
 
@@ -77,7 +80,7 @@
 
                 addPoint(getPointFromEvent(e));
             }
-            updateCurPosition(e);
+            updateCur(e);
         },
 
         _mouseUp: function (e) {
@@ -85,7 +88,7 @@
                 log("Mouse up: " + e.offsetX + "," + e.offsetY);
                 addPoint(getPointFromEvent(e));
 
-                _endElement();
+                endElement();
             }
         },
 
@@ -104,7 +107,7 @@
                 if (_internal.is_mousedown === true) {
                     log("Mouse out: " + e.offsetX + "," + e.offsetY);
 
-                    _endElement();
+                    endElement();
                 }
                 removeCur();
             }
@@ -130,25 +133,30 @@
             }
         },
 
+        getInternal: function () {
+            return _internal;
+        },
+
         reset: function () {
-            _internal.points = [];
             _internal.element_index = 0;
+            _internal.canvasStack = {
+                head: -1,
+                elements: []
+            },
             _internal.is_mousedown = false;
 
             var svg = _internal.el;
             while (svg.lastChild) {
                 svg.removeChild(svg.lastChild);
             }
-
         }
 
     };
-
     /**
      * Core
      */
     function addPoint(point) {
-        var len = _internal.points.push(point);
+        var len = getPoints().push(point);
         if (len > 2 && len % 2 === 0) {
             draw();
         }
@@ -165,7 +173,7 @@
     }
 
     function makeD() {
-        var points = _internal.points;
+        var points = getPoints();
         var d = "M" + points[0].x + "," + points[0].y + " Q",
             n = points.length;
         for (var i = 1; i < n - 1; i++) {
@@ -176,22 +184,45 @@
     }
 
     function getPoint(index) {
+        var points = getPoints();
         if (index === undefined) {
-            return _internal.points[_internal.points.length - 1];
+            return points[points.length - 1];
         } else {
-            return _internal.points[index];
+            return points[index];
         }
     }
 
-    function _endElement() {
+    function getPoints(index) {
+        var _index = index ? index : _internal.element_index;
+        if (_internal.canvasStack.elements[_index] === undefined) {
+            if (_index === _internal.element_index) {
+                return _initElements(_index).points;
+            }
+            return undefined;
+        }
+        return _internal.canvasStack.elements[_index].points;
+    }
+
+    function _initElements(index) {
+        _internal.canvasStack.elements[index] = {
+            tool: _internal.tool,
+            painter_radius: _internal.painter_radius,
+            opacity: _internal.opacity,
+            color: _internal.color,
+            points: []
+        };
+        return _internal.canvasStack.elements[index];
+    }
+
+    function endElement() {
         _internal.is_mousedown = false;
-        _internal.points = [];
 
         var element = get(_self.options.element_prefix + _internal.element_index);
         if (element) {
             element.setAttribute("opacity", _internal.opacity);
         }
 
+        _internal.canvasStack.head ++;
         _internal.element_index ++;
     }
 
@@ -293,7 +324,7 @@
         _internal.el.setAttribute("style", styleList + "cursor:crosshair;");
     }
 
-    function updateCurPosition(e) {
+    function updateCur(e) {
         var cursor = get(_self.options.cursor_id);
         if (cursor) {
             cursor.setAttribute("cx", e.offsetX);
