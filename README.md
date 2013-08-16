@@ -43,7 +43,7 @@ Opera 9.0+
 IE 9+
 
 
-Currently, It doesn't support on mobile/tablet devices. But it's coming soon...
+Currently, It doesn't work on mobile/tablet devices. But it's coming soon...
 
 
 We're improving everyday !

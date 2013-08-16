@@ -10,7 +10,9 @@
     <div class="container">
         <h1>mPainter Demo</h1>
         <span style="float:right;">v0.1.0</span>
-
+        <button id="canvas-undo">Undo</button>
+        <button id="canvas-redo">Redo</button>
+        <button id="canvas-clear">Clear Canvas</button>
         <svg id="my-svg" width="980" height="500"> </svg>
         <div id="paint-config">
             <div id="tool-kit">
@@ -45,10 +47,6 @@
                     <li><div class="paint-size" style="background-color:#FF0000;width:16px;height:16px;"></div></li>
                 </ul>
             </div>
-            <hr />
-            <button id="canvas-clear">Clear Canvas</button>
-            <button id="canvas-undo">Undo</button>
-            <button id="canvas-redo">Redo</button>
         </div>
     </div>
     <script src="vendor/jquery.js"></script>
