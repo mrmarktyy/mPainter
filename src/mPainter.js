@@ -138,49 +138,43 @@
         },
 
         undo: function () {
-            if (_internal.undo.length) {
-                var undo = _internal.undo.pop(),
-                    _index = undo.id,
-                    _value = undo.value,
-                    revs = _value === "d" ? "a" : "d";
-
-                // push redo
-                _internal.redo.push({id: _index, value: revs});
-
-                if (_value === "d") {
-                    var elm = get(this.options.element_prefix + _index);
-                    _internal.canvasStack.elements[_index].is_delelted = true;
-                    if (elm) {
-                        elm.parentNode.removeChild(elm);
-                    }
-                } else {
-                    var config = _internal.canvasStack.elements[_index].config;
-                    config.opacity = config.opacity * 2;
-                    draw(config);
-                }
-            }
+            this.do("undo");
         },
 
         redo: function () {
-            if (_internal.redo.length) {
-                var redo = _internal.redo.pop(),
-                    _index = redo.id,
-                    _value = redo.value,
-                    revs = _value === "d" ? "a" : "d";
+            this.do("redo");
+        },
 
-                // push undo
-                _internal.undo.push({id: _index, value: revs});
+        do: function (type) {
+            var opp_type;
+            switch (type) {
+            case "undo":
+                opp_type = "redo";
+                break;
+            case "redo":
+                opp_type = "undo";
+                break;
+            }
+            if (_internal[type].length) {
+                var o = _internal[type].pop(),
+                    _index = o.id,
+                    _value = o.value;
 
-                if (_value === "d") {
-                    var elm = get(this.options.element_prefix + _index);
-                    _internal.canvasStack.elements[_index].is_delelted = true;
-                    if (elm) {
-                        elm.parentNode.removeChild(elm);
-                    }
-                } else {
+                // push state to oppsite array
+                _internal[opp_type].push({id: _index, value: revs(_value)});
+                
+                switch (_value) {
+                case "a":
+                    _internal.canvasStack.elements[_index].is_delelted = false;
                     var config = _internal.canvasStack.elements[_index].config;
-                    config.opacity = config.opacity * 2;
+                    // fix half opacity issue
+                    config.opacity *= 2;
                     draw(config);
+                    break;
+                case "d":
+                    _internal.canvasStack.elements[_index].is_delelted = true;
+                    removeElement(_index);
+                    break;
                 }
             }
         },
@@ -213,16 +207,6 @@
         }
     }
 
-    function makeElement(tag, attrs) {
-        var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-        for (var k in attrs) {
-            if (attrs.hasOwnProperty(k)) {
-                el.setAttribute(k, attrs[k]);
-            }
-        }
-        return el;
-    }
-
     function _initElements(index) {
         _internal.canvasStack.elements[index] = {
             config: {
@@ -238,6 +222,16 @@
         return _internal.canvasStack.elements[index];
     }
 
+    function makeElement(tag, attrs) {
+        var elm = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (var i in attrs) {
+            if (attrs.hasOwnProperty(i)) {
+                elm.setAttribute(i, attrs[i]);
+            }
+        }
+        return elm;
+    }
+
     function endElement() {
         _internal.is_mousedown = false;
 
@@ -247,9 +241,9 @@
             element.setAttribute("opacity", _internal.config.opacity);
         }
 
-        // redo & undo
+        // setup redo & undo
         for (var i = _internal.redo.length - 1; i >= 0; i--) {
-            _internal.undo.push({id: _internal.redo[i].id, value: _internal.redo[i].value === "d" ? "a" : "d"});
+            _internal.undo.push({id: _internal.redo[i].id, value: revs( _internal.redo[i].value)});
         }
         for (var j = 0, n = _internal.redo.length; j < n; j++) {
             _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
@@ -258,6 +252,13 @@
         _internal.redo = [];
 
         _internal.canvasStack.head = _internal.config.element_index ++;
+    }
+
+    function removeElement(index) {
+        var elm = get(_self.options.element_prefix + index);
+        if (elm) {
+            elm.parentNode.removeChild(elm);
+        }
     }
 
     function _eventHandler(e) {
@@ -304,8 +305,7 @@
             len = points.length,
             // fix for undo/redo odd number of points, need refactor
             last = len % 2 === 0 ? len - 1 : len - 2;
-        var d = "M" + points[0].x + "," + points[0].y + " Q",
-            n = points.length;
+        var d = "M" + points[0].x + "," + points[0].y + " Q";
         for (var i = 1; i < last; i++) {
             d += points[i].x + "," + points[i].y + " ";
         }
@@ -339,8 +339,8 @@
         }
     }
 
-    function getPoints(index) {
-        var _index = index === undefined ? _internal.config.element_index : index;
+    function getPoints(element_index) {
+        var _index = element_index === undefined ? _internal.config.element_index : element_index;
         if (_internal.canvasStack.elements[_index] === undefined) {
             if (_index === _internal.config.element_index) {
                 return _initElements(_index).points;
@@ -350,8 +350,8 @@
         return _internal.canvasStack.elements[_index].points;
     }
 
-    function getPoint(elm_index, point_index) {
-        var points = getPoints(elm_index);
+    function getPoint(element_index, point_index) {
+        var points = getPoints(element_index);
         if (point_index === undefined) {
             return points[points.length - 1];
         } else {
@@ -388,7 +388,7 @@
     function newCrossCur(e) {
         var styleList = "";
         if (_internal.el.getAttribute("style")) {
-            styleList = _internal.el.getAttribute("class");
+            styleList = _internal.el.getAttribute("style");
         }
         _internal.el.setAttribute("style", styleList + "cursor:crosshair;");
     }
@@ -450,6 +450,10 @@
         return false;
     }
 
+    function revs(action) {
+        return action === "d" ? "a" : "d";
+    }
+
     function log(data) {
         if (_self.options.debug === true) {
             console.log(data);
@@ -459,3 +463,4 @@
     window.mPainter = mPainter;
 
 })(window);
+
