@@ -153,7 +153,7 @@
 
                 // push state to oppsite array
                 _internal[revs(type)].push({id: _index, value: revs(_value)});
-                
+
                 switch (_value) {
                 case "a":
                     _internal.canvasStack.elements[_index].is_delelted = false;
@@ -195,10 +195,8 @@
      * Core
      */
     function addPoint(point) {
-        var len = getPoints(_internal.config.element_index).push(point);
-        if (len > 2 && len % 2 === 0) {
-            draw(_internal.config);
-        }
+        getPoints(_internal.config.element_index).push(point);
+        draw(_internal.config);
     }
 
     function _initElements(index) {
@@ -208,7 +206,7 @@
                 tool: _internal.config.tool,
                 painter_radius: _internal.config.painter_radius,
                 opacity: _internal.config.opacity,
-                color: _internal.config.color,
+                color: _internal.config.color
             },
             points: [],
             is_delelted: false
@@ -237,7 +235,7 @@
 
         // setup redo & undo
         for (var i = _internal.redo.length - 1; i >= 0; i--) {
-            _internal.undo.push({id: _internal.redo[i].id, value: revs( _internal.redo[i].value)});
+            _internal.undo.push({id: _internal.redo[i].id, value: revs(_internal.redo[i].value)});
         }
         for (var j = 0, n = _internal.redo.length; j < n; j++) {
             _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
@@ -297,9 +295,16 @@
     function makeD(index) {
         var points = getPoints(index),
             len = points.length,
-            // fix for undo/redo odd number of points, need refactor
-            last = len % 2 === 0 ? len - 1 : len - 2;
-        var d = "M" + points[0].x + "," + points[0].y + " Q";
+            last = len % 2 === 0 ? len - 1 : len - 2,
+            d = "M" + points[0].x + "," + points[0].y;
+        // dealting with if only has 1-3 points
+        if (len === 1) {
+            return d;
+        }
+        if (len === 2 || len === 3) {
+            return d + "T" + points[len - 1].x + "," + points[len - 1].y;
+        }
+        d += "Q";
         for (var i = 1; i < last; i++) {
             d += points[i].x + "," + points[i].y + " ";
         }
@@ -328,7 +333,6 @@
                 "stroke": config.color,
                 "opacity": config.opacity / 2
             });
-
             _internal.el.appendChild(line);
         }
     }
