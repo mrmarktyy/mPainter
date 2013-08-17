@@ -138,30 +138,21 @@
         },
 
         undo: function () {
-            this.do("undo");
+            this.exec("undo");
         },
 
         redo: function () {
-            this.do("redo");
+            this.exec("redo");
         },
 
-        do: function (type) {
-            var opp_type;
-            switch (type) {
-            case "undo":
-                opp_type = "redo";
-                break;
-            case "redo":
-                opp_type = "undo";
-                break;
-            }
+        exec: function (type) {
             if (_internal[type].length) {
                 var o = _internal[type].pop(),
                     _index = o.id,
                     _value = o.value;
 
                 // push state to oppsite array
-                _internal[opp_type].push({id: _index, value: revs(_value)});
+                _internal[revs(type)].push({id: _index, value: revs(_value)});
                 
                 switch (_value) {
                 case "a":
@@ -184,6 +175,8 @@
         },
 
         reset: function () {
+            _internal.undo = [];
+            _internal.redo = [];
             _internal.config.element_index = 0;
             _internal.canvasStack = {
                 head: -1,
@@ -197,11 +190,12 @@
         }
 
     };
+
     /**
      * Core
      */
     function addPoint(point) {
-        var len = getPoints().push(point);
+        var len = getPoints(_internal.config.element_index).push(point);
         if (len > 2 && len % 2 === 0) {
             draw(_internal.config);
         }
@@ -340,14 +334,10 @@
     }
 
     function getPoints(element_index) {
-        var _index = element_index === undefined ? _internal.config.element_index : element_index;
-        if (_internal.canvasStack.elements[_index] === undefined) {
-            if (_index === _internal.config.element_index) {
-                return _initElements(_index).points;
-            }
-            return undefined;
+        if (_internal.canvasStack.elements[element_index] === undefined) {
+            return _initElements(element_index).points;
         }
-        return _internal.canvasStack.elements[_index].points;
+        return _internal.canvasStack.elements[element_index].points;
     }
 
     function getPoint(element_index, point_index) {
@@ -450,8 +440,12 @@
         return false;
     }
 
-    function revs(action) {
-        return action === "d" ? "a" : "d";
+    function revs(input) {
+        if (input === "d") return "a";
+        if (input === "a") return "d";
+        if (input === "redo") return "undo";
+        if (input === "undo") return "redo";
+        return input;
     }
 
     function log(data) {
