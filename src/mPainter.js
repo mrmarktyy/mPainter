@@ -89,12 +89,9 @@
         redo: function () {
             this.exec("redo");
         },
-        // TODO: Function does not workk at the moment
+        // TODO FIX: Function does not work
         saveImage: function () {
             // Create a canvas element
-            // var canvas = document.createElement('canvas');
-            // canvas.width = 980;
-            // canvas.height = 500;
             var canvas = get("mycanvas");
             var ctx = canvas.getContext("2d");
 
@@ -110,7 +107,6 @@
                 var b64 = canvas.toDataURL("image/png");
                 console.log(b64);
             };
-            img.crossOrigin = 'anonymous';
             img.src = url;
         },
 
@@ -139,7 +135,7 @@
                 }
             }
         },
-
+        // TODO REMOVE: development use only
         getInternal: function () {
             return _internal;
         },
@@ -160,60 +156,70 @@
         }
 
     };
-
+    // TODO REFACTOR:
     function bindEvents() {
-        _forEach(_self.options.startTrigger, function (eventType) {
-            _addEventListener(_internal.el, eventType, paintStart);
+        _self.options.startTrigger.forEach(function (eventType) {
+            _internal.el.addEventListener(eventType, paintStart, false);
         });
-        _forEach(_self.options.moveTrigger, function (eventType) {
-            _addEventListener(_internal.el, eventType, paintMove);
+        _self.options.moveTrigger.forEach(function (eventType) {
+            _internal.el.addEventListener(eventType, paintMove, false);
         });
-        _forEach(_self.options.stopTrigger, function (eventType) {
-            _addEventListener(_internal.el, eventType, paintStop);
+        _self.options.stopTrigger.forEach(function (eventType) {
+            _internal.el.addEventListener(eventType, paintStop, false);
         });
-        _addEventListener(_internal.el, "mouseover", mouseOver);
-        _addEventListener(_internal.el, "mouseout", mouseOut);
+        _internal.el.addEventListener("mouseover", mouseOver, false);
+        _internal.el.addEventListener("mouseout", mouseOut, false);
     }
-
     // function _eventHandler(e) {
     //     if (_internal.EVENTS[e.type] && typeof _internal.EVENTS[e.type] === "function") {
     //         _internal.EVENTS[e.type].call(_self, e);
     //     }
     // }
     /**
-     * Events han
+     * Events handlers
      */
     function paintStart(e) {
-        log("Mouse down: " + e.offsetX + "," + e.offsetY);
-        // Fix dragging in svg with text cursor issue
+        // Fix moving in svg with text cursor issue
         e.preventDefault();
+        e.stopPropagation();
 
-        addPoint(getPointFromEvent(e));
+        var point = getPointFromEvent(e);
+        log("Start: " + point.x + "," + point.y);
+
+        addPoint(point);
 
         _internal.is_mousedown = true;
     }
-    // TODO: Add throttle
+    // TODO: Add throttle if necessary
     function paintMove(e) {
         if (_internal.is_mousedown === true) {
-            log("Mouse move to: " + e.offsetX + "," + e.offsetY);
+            e.preventDefault();
+            e.stopPropagation();
 
-            addPoint(getPointFromEvent(e));
+            var point = getPointFromEvent(e);
+            log("Move: " + point.x + "," + point.y);
+
+            addPoint(point);
         }
+
         updateCur(e);
     }
 
     function paintStop(e) {
-        if (_internal.is_mousedown === true) {
-            log("Mouse up: " + e.offsetX + "," + e.offsetY);
-            addPoint(getPointFromEvent(e));
+        e.preventDefault();
+        e.stopPropagation();
 
-            endElement();
-        }
+        var point = getPointFromEvent(e);
+        log('Stop: ' + point.x + ',' + point.y);
+
+        addPoint(point);
+
+        endElement();
     }
 
     function mouseOver(e) {
         if (isOutside(e, _internal.el)) {
-            log("Mouse enter", e);
+            log('Enter', e);
 
             newCur(e);
         }
@@ -224,10 +230,11 @@
         var toElement = e.toElement ? e.toElement : e.relatedTarget;
         if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
             if (_internal.is_mousedown === true) {
-                log("Mouse out: " + e.offsetX + "," + e.offsetY);
+                log('Out', e);
 
                 endElement();
             }
+
             removeCur();
         }
     }
@@ -235,14 +242,16 @@
      * Core
      */
     function addPoint(point) {
-        getPoints(_internal.config.element_index).push(point);
+        var points_arr = getPoints(_internal.config.element_index);
+        points_arr.push(point);
+
         draw(_internal.config);
     }
 
-    function _initElements(index) {
-        _internal.canvasStack.elements[index] = {
+    function initElement(element_index) {
+        _internal.canvasStack.elements[element_index] = {
             config: {
-                element_index: index,
+                element_index: element_index,
                 tool: _internal.config.tool,
                 painter_radius: _internal.config.painter_radius,
                 opacity: _internal.config.opacity,
@@ -251,17 +260,7 @@
             points: [],
             is_delelted: false
         };
-        return _internal.canvasStack.elements[index];
-    }
-
-    function makeElement(tag, attrs) {
-        var elm = document.createElementNS("http://www.w3.org/2000/svg", tag);
-        for (var i in attrs) {
-            if (attrs.hasOwnProperty(i)) {
-                elm.setAttribute(i, attrs[i]);
-            }
-        }
-        return elm;
+        return _internal.canvasStack.elements[element_index];
     }
 
     function endElement() {
@@ -330,7 +329,7 @@
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = "M" + points[0].x + "," + points[0].y;
-        // dealting with if only has 1-3 points
+        // if only has 1-3 points
         if (len === 1) {
             return d;
         }
@@ -372,7 +371,7 @@
 
     function getPoints(element_index) {
         if (_internal.canvasStack.elements[element_index] === undefined) {
-            return _initElements(element_index).points;
+            return initElement(element_index).points;
         }
         return _internal.canvasStack.elements[element_index].points;
     }
@@ -385,7 +384,6 @@
             return points[point_index];
         }
     }
-
     /**
      * Cursor
      */
@@ -438,15 +436,33 @@
             _internal.el.setAttribute("style", styleList.replace(/cursor:crosshair;/, ''));
         }
     }
-
     /**
      * Helper methods
      */
-    function getPointFromEvent(e) {
-        return {
-            x: e.offsetX,
-            y: e.offsetY
-        };
+    function makeElement(tag, attrs) {
+        var elm = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (var i in attrs) {
+            if (attrs.hasOwnProperty(i)) {
+                elm.setAttribute(i, attrs[i]);
+            }
+        }
+        return elm;
+    }
+     // normalize events
+    function getPointFromEvent(event) {
+        var e = event || window.event,
+            x, y;
+        if (!isTouch(e)) {
+            x = e.offsetX;
+            y = e.offsetY;
+        } else if (e.targetTouches.length) {
+            x = e.targetTouches[0].clientX;
+            y = e.targetTouches[0].clientY - _internal.el.offsetTop + window.scrollY;
+        } else {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY - _internal.el.offsetTop + window.scrollY;
+        }
+        return { x: x, y: y };
     }
 
     function isOutside(evt, parent) {
@@ -473,6 +489,10 @@
             console.log(data);
         }
     }
+
+    function isTouch(e) {
+        return event.type.search('touch') > -1;
+    }
     /**
      * Shim methods
      */
@@ -494,23 +514,6 @@
             __method.call(object, event || window.event);
         };
     }
-
-    function _forEach(collections, fn, context) {
-        for (var i = 0, n = collections.length; i < n; i++) {
-            fn.call(context || null, collections[i], i, collections);
-        }
-    }
-
-    function _addEventListener(obj, eventType, handler) {
-        if (window.addEventListener) {
-            obj.addEventListener(eventType, handler, false);
-        } else if (window.attachEvent) {
-            obj.attachEvent('on' + eventType, handler);
-        } else {
-            throw "Event type: " + eventType + " is not supported";
-        }
-    }
-
 
     function get(id) {
         return document.getElementById(id);
