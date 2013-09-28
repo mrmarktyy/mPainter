@@ -9,11 +9,14 @@
     <a href="https://github.com/mrmarktyy/mPainter"><img id="fork-me" alt="Fork me on GitHub" src="img/forkme.png" /></a>
     <div class="container">
         <h1>mPainter Demo</h1>
-        <span style="float:right;">v0.1.0</span>
-        <button id="canvas-undo">Undo</button>
-        <button id="canvas-redo">Redo</button>
-        <button id="canvas-clear">Clear Canvas</button>
-        <svg id="my-svg" width="980" height="500"> </svg>
+        <div class="button-group">
+            <span style="float:right;">v0.1.2</span>
+            <button id="canvas-undo">Undo</button>
+            <button id="canvas-redo">Redo</button>
+            <!-- <button id="canvas-save">Save as Image</button> -->
+            <button id="canvas-clear">Clear Canvas</button>
+        </div>
+        <svg id="painter-svg" width="980" height="500" xmlns="http://www.w3.org/2000/svg"> </svg>
         <div id="paint-config">
             <div id="tool-kit">
                 Pick Tool:
@@ -49,23 +52,26 @@
             </div>
         </div>
     </div>
+    <canvas id="mycanvas" width="980" height="500"></canvas>
     <script src="vendor/jquery.js"></script>
     <script src="src/mPainter.js"></script>
     <script>
         var config = {
-            id: "my-svg",
+            id: "painter-svg",
             element_prefix: "elm_"
         };
         var mPainter = new mPainter(config);
-
         /**
-         * Buttons
+         * Button group
          */
         $(document).on('click', '#canvas-clear', function() {
             mPainter.reset();
         });
         $(document).on('click', '#canvas-undo', function() {
             mPainter.undo();
+        });
+        $(document).on('click', '#canvas-save', function() {
+            mPainter.saveImage();
         });
         $(document).on('click', '#canvas-redo', function() {
             mPainter.redo();
@@ -80,7 +86,6 @@
 
             mPainter.setColor(hex);
         });
-
         /**
          * Custom Color
          */
@@ -93,7 +98,6 @@
                 mPainter.setColor(hex);
             }
         })
-
         /**
          * Size Selector
          */
@@ -103,9 +107,8 @@
 
             var width = $(this).find("div.paint-size").css("width")
                 radius = width.substring(0, width.length - 2) / 2;
-            mPainter.setPainterSize(radius);
+            mPainter.setSize(radius);
         });
-
         /**
          * Tool Kit
          */
