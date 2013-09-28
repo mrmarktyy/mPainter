@@ -5,123 +5,68 @@
         _internal = {},
         _self;
 
+    /**
+     * Initialization
+     */
     mPainter = function (options) {
-        _self = this;
-        this._init(options);
-    };
-
-    mPainter.prototype = {
-
-        _init: function (options) {
-            var defaults = {
+        var defaults = {
                 debug: false,
                 id: "mysvg",
                 cursor_id: "cursor",
                 element_prefix: "element_",
-                tool: "PAINT"
+                tool: "PAINT",
+
+                startTrigger : ['mousedown', 'touchstart', 'MSPointerDown'],
+                moveTrigger  : ['mousemove', 'touchmove', 'MSPointerMove'],
+                stopTrigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
             };
+        this.options = _extend(defaults, options);
 
-            this.options = _extend({}, defaults, options);
+        _self = this;
+        _internal = {
+            el: get(this.options.id),
+            undo: [],
+            redo: [],
 
-            _internal = {
-                el: get(this.options.id),
-                undo: [],
-                redo: [],
+            is_mousedown: false,
+            canvasStack: {
+                head: -1,
+                elements: []
+            },
 
-                is_mousedown: false,
-                canvasStack: {
-                    head: -1,
-                    elements: []
-                },
+            config: {
+                element_index: 0,
+                tool: this.options.tool,
+                painter_radius: 3,
+                opacity: 1,
+                color: "#FF0000"  // red
+            },
 
-                config: {
-                    element_index: 0,
-                    tool: this.options.tool,
-                    painter_radius: 3,
-                    opacity: 1,
-                    color: "#FF0000"  // red
-                },
+            // EVENTS: {
+            //     "mousedown": _mouseDown,
+            //     "mousemove": _mouseMove,
+            //     "mouseup": _mouseUp,
+            //     "mouseover": _mouseOver,
+            //     "mouseout": _mouseOut
+            // },
 
-                EVENTS: {
-                    "mousedown": this._mouseDown,
-                    "mousemove": this._mouseMove,
-                    "mouseup": this._mouseUp,
-                    "mouseover": this._mouseOver,
-                    "mouseout": this._mouseOut
-                },
-
-                TOOLS: {
-                    PAINT: "PAINT",
-                    LINE: "LINE"
-                }
-
-            };
-
-            this._initEvents();
-        },
-
-        _initEvents: function () {
-            _internal.el.addEventListener("mousedown", _eventHandler, false);
-            _internal.el.addEventListener("mousemove", _eventHandler, false);
-            _internal.el.addEventListener("mouseup", _eventHandler, false);
-            _internal.el.addEventListener("mouseover", _eventHandler, false);
-            _internal.el.addEventListener("mouseout", _eventHandler, false);
-        },
-
-        _mouseDown: function (e) {
-            log("Mouse down: " + e.offsetX + "," + e.offsetY);
-            // Fix dragging in svg with text cursor issue
-            e.preventDefault();
-
-            addPoint(getPointFromEvent(e));
-
-            _internal.is_mousedown = true;
-        },
-        // TODO: Add throttle
-        _mouseMove: function (e) {
-            if (_internal.is_mousedown === true) {
-                log("Mouse move to: " + e.offsetX + "," + e.offsetY);
-
-                addPoint(getPointFromEvent(e));
+            TOOLS: {
+                PAINT: "PAINT",
+                LINE: "LINE"
             }
-            updateCur(e);
-        },
 
-        _mouseUp: function (e) {
-            if (_internal.is_mousedown === true) {
-                log("Mouse up: " + e.offsetX + "," + e.offsetY);
-                addPoint(getPointFromEvent(e));
+        };
 
-                endElement();
-            }
-        },
+        bindEvents();
+    };
 
-        _mouseOver: function (e) {
-            if (isOutside(e, _internal.el)) {
-                log("Mouse enter", e);
-
-                newCur(e);
-            }
-        },
-
-        _mouseOut: function (e) {
-            // check if truly mouse out from svg element
-            var toElement = e.toElement ? e.toElement : e.relatedTarget;
-            if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== this.options.cursor_id) {
-                if (_internal.is_mousedown === true) {
-                    log("Mouse out: " + e.offsetX + "," + e.offsetY);
-
-                    endElement();
-                }
-                removeCur();
-            }
-        },
+    mPainter.prototype = {
 
         setColor: function (color) {
             _internal.config.color = color;
         },
 
-        setPainterSize: function (radius) {
+        setSize: function (radius) {
             _internal.config.painter_radius = radius;
         },
 
@@ -144,8 +89,33 @@
         redo: function () {
             this.exec("redo");
         },
+        // TODO: Function does not workk at the moment
+        saveImage: function () {
+            // Create a canvas element
+            // var canvas = document.createElement('canvas');
+            // canvas.width = 980;
+            // canvas.height = 500;
+            var canvas = get("mycanvas");
+            var ctx = canvas.getContext("2d");
+
+            var data = new XMLSerializer().serializeToString(_internal.el);
+            var DOMURL = window.URL || window.webkitURL || window;
+            // var img = new Image();
+            var img = document.createElement('img');
+            var svg = new Blob([data], {type: "image/svg+xml;charset=utf-8"});
+            var url = DOMURL.createObjectURL(svg);
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // DOMURL.revokeObjectURL(url);
+                var b64 = canvas.toDataURL("image/png");
+                console.log(b64);
+            };
+            img.crossOrigin = 'anonymous';
+            img.src = url;
+        },
 
         exec: function (type) {
+            // TODO: Refactor, now is checking the length of 'type' array
             if (_internal[type].length) {
                 var o = _internal[type].pop(),
                     _index = o.id,
@@ -191,6 +161,76 @@
 
     };
 
+    function bindEvents() {
+        _forEach(_self.options.startTrigger, function (eventType) {
+            _addEventListener(_internal.el, eventType, paintStart);
+        });
+        _forEach(_self.options.moveTrigger, function (eventType) {
+            _addEventListener(_internal.el, eventType, paintMove);
+        });
+        _forEach(_self.options.stopTrigger, function (eventType) {
+            _addEventListener(_internal.el, eventType, paintStop);
+        });
+        _addEventListener(_internal.el, "mouseover", mouseOver);
+        _addEventListener(_internal.el, "mouseout", mouseOut);
+    }
+
+    // function _eventHandler(e) {
+    //     if (_internal.EVENTS[e.type] && typeof _internal.EVENTS[e.type] === "function") {
+    //         _internal.EVENTS[e.type].call(_self, e);
+    //     }
+    // }
+    /**
+     * Events han
+     */
+    function paintStart(e) {
+        log("Mouse down: " + e.offsetX + "," + e.offsetY);
+        // Fix dragging in svg with text cursor issue
+        e.preventDefault();
+
+        addPoint(getPointFromEvent(e));
+
+        _internal.is_mousedown = true;
+    }
+    // TODO: Add throttle
+    function paintMove(e) {
+        if (_internal.is_mousedown === true) {
+            log("Mouse move to: " + e.offsetX + "," + e.offsetY);
+
+            addPoint(getPointFromEvent(e));
+        }
+        updateCur(e);
+    }
+
+    function paintStop(e) {
+        if (_internal.is_mousedown === true) {
+            log("Mouse up: " + e.offsetX + "," + e.offsetY);
+            addPoint(getPointFromEvent(e));
+
+            endElement();
+        }
+    }
+
+    function mouseOver(e) {
+        if (isOutside(e, _internal.el)) {
+            log("Mouse enter", e);
+
+            newCur(e);
+        }
+    }
+
+    function mouseOut(e) {
+        // check if truly mouse out from svg element
+        var toElement = e.toElement ? e.toElement : e.relatedTarget;
+        if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
+            if (_internal.is_mousedown === true) {
+                log("Mouse out: " + e.offsetX + "," + e.offsetY);
+
+                endElement();
+            }
+            removeCur();
+        }
+    }
     /**
      * Core
      */
@@ -252,13 +292,6 @@
             elm.parentNode.removeChild(elm);
         }
     }
-
-    function _eventHandler(e) {
-        if (_internal.EVENTS[e.type] && typeof _internal.EVENTS[e.type] === "function") {
-            _internal.EVENTS[e.type].call(_self, e);
-        }
-    }
-
     /**
      * Draw
      */
@@ -407,30 +440,13 @@
     }
 
     /**
-     * Helper funcions
+     * Helper methods
      */
     function getPointFromEvent(e) {
         return {
             x: e.offsetX,
             y: e.offsetY
         };
-    }
-
-    function get(id) {
-        return document.getElementById(id);
-    }
-
-    // shallow copy
-    function _extend() {
-        var o = {};
-        for (var i = 0, n = arguments.length; i < n; i++) {
-            for (var key in arguments[i]) {
-                if (arguments[i].hasOwnProperty(key)) {
-                    o[key] = arguments[i][key];
-                }
-            }
-        }
-        return o;
     }
 
     function isOutside(evt, parent) {
@@ -456,6 +472,48 @@
         if (_self.options.debug === true) {
             console.log(data);
         }
+    }
+    /**
+     * Shim methods
+     */
+    function _extend() {
+        var o = {};
+        for (var i = 0, n = arguments.length; i < n; i++) {
+            for (var key in arguments[i]) {
+                if (arguments[i].hasOwnProperty(key)) {
+                    o[key] = arguments[i][key];
+                }
+            }
+        }
+        return o;
+    }
+
+    function _bind(f, object) {
+        var __method = f;
+        return function (event) {
+            __method.call(object, event || window.event);
+        };
+    }
+
+    function _forEach(collections, fn, context) {
+        for (var i = 0, n = collections.length; i < n; i++) {
+            fn.call(context || null, collections[i], i, collections);
+        }
+    }
+
+    function _addEventListener(obj, eventType, handler) {
+        if (window.addEventListener) {
+            obj.addEventListener(eventType, handler, false);
+        } else if (window.attachEvent) {
+            obj.attachEvent('on' + eventType, handler);
+        } else {
+            throw "Event type: " + eventType + " is not supported";
+        }
+    }
+
+
+    function get(id) {
+        return document.getElementById(id);
     }
 
     window.mPainter = mPainter;
