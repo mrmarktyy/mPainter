@@ -1,7 +1,7 @@
 Introduction
 ========
 
-**mPainter** is a simple, light-weighted, no dependency SVG painting library, which can easily create or convert SVG element to be a painting board.
+**mPainter** is a simple, light-weighted, dependency free SVG painting widget library, which can easily create or convert a DOM element to a SVG painting board.
 
 Please see [DEMO]
 
@@ -10,16 +10,19 @@ Getting Started
 ------------
 
 1. Place the loader script before the closing body tag in the HTML
+
 ```
 <script src="app/src/mPainter.js"></script>
 ```
 
 2. Create a SVG element in the HTML, like
+
 ```
 <svg id="my-svg" width="980" height="500"> </svg>
 ```
 
 3. Init mPaint via Javascript. And that's it, start painting !
+
 ```
 var config = {
     id: "my-svg",
@@ -43,14 +46,12 @@ Opera 9.0+
 IE 9+
 
 
-Currently, It doesn't work on mobile/tablet devices. But it's coming soon...
-
-
 We're improving everyday !
 -----------
 
-* take out jQuery dependency ✓
+* strip off jQuery dependency ✓
 * undo/redo support ✓
+* tablets, mobile devices and win8 point screen support ✓
 
 Road Map
 ----
@@ -64,6 +65,7 @@ Road Map
 LICENCE
 -------
 
-MIT
+This project is under [MIT] licence
 
 [DEMO]:http://paint.tantanguanguan.com
+[MIT]: http://en.wikipedia.org/wiki/MIT_License
