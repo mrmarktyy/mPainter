@@ -9,19 +9,19 @@ Please see [DEMO]
 Getting Started
 ------------
 
-1. Place the loader script before the closing body tag in the HTML
+1.  Place the loader script before the closing body tag in the HTML
 
 ```
 <script src="app/src/mPainter.js"></script>
 ```
 
-2. Create a SVG element in the HTML, like
+2.  Create a SVG element in the HTML, like
 
 ```
 <svg id="my-svg" width="980" height="500"> </svg>
 ```
 
-3. Init mPaint via Javascript. And that's it, start painting !
+3.  Init mPaint via Javascript. And that's it, start painting !
 
 ```
 var config = {
@@ -30,7 +30,7 @@ var config = {
 var mPainter = new mPainter(config);
 ```
 
-4. More options are available, please see documentation for details.
+4.  More options are available, please see documentation for details.
 
 Browser Support
 --------------
