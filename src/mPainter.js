@@ -16,9 +16,9 @@
                 element_prefix: "element_",
                 tool: "PAINT",
 
-                startTrigger : ['mousedown', 'touchstart', 'MSPointerDown'],
-                moveTrigger  : ['mousemove', 'touchmove', 'MSPointerMove'],
-                stopTrigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
+                start_trigger : ['mousedown', 'touchstart', 'MSPointerDown'],
+                move_trigger  : ['mousemove', 'touchmove', 'MSPointerMove'],
+                stop_trigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
             };
         this.options = _extend(defaults, options);
 
@@ -158,13 +158,13 @@
     };
     // TODO REFACTOR:
     function bindEvents() {
-        _self.options.startTrigger.forEach(function (eventType) {
+        _self.options.start_trigger.forEach(function (eventType) {
             _internal.el.addEventListener(eventType, paintStart, false);
         });
-        _self.options.moveTrigger.forEach(function (eventType) {
+        _self.options.move_trigger.forEach(function (eventType) {
             _internal.el.addEventListener(eventType, paintMove, false);
         });
-        _self.options.stopTrigger.forEach(function (eventType) {
+        _self.options.stop_trigger.forEach(function (eventType) {
             _internal.el.addEventListener(eventType, paintStop, false);
         });
         _internal.el.addEventListener("mouseover", mouseOver, false);
@@ -324,8 +324,8 @@
         }
     }
 
-    function makeD(index) {
-        var points = getPoints(index),
+    function makeD(element_index) {
+        var points = getPoints(element_index),
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = "M" + points[0].x + "," + points[0].y;
