@@ -115,64 +115,69 @@
         replay: function () {
             var elements = _internal.paint_stack.elements,
                 len = elements.length,
-                _raf = _requestAnimationFrame();
+                _raf = _requestAnimationFrame(),
+                replay_time = time(),
+                element_begin = 0,
+                point_begin = 0,
+                replay_points = [];
 
             clearPaint();
-
-            var replay_time = time(),
-                element_begin = 0,
-                point_begin = 0;
+            console.log(elements);
 
             var render = function () {
-                if (element_begin < len) {
-                    _raf(render);
+                // stop repeat
+                if (element_begin >= len) {
+                    return;
                 }
+                _raf(render);
 
                 console.log(element_begin, point_begin);
 
                 var i, j, n, element_end,
                     dt = time() - replay_time,
-                    before_time = _internal.paint_start + dt,
-                    has_found = false;
+                    before_time = _internal.paint_start + dt;
 
                 // search for element_end
-                for (i = element_begin; i < len; i++) {
-                    var points = elements[i].points;
-                    if (elements[i].points[points.length - 1].timestamp > before_time) {
-                        element_end = i;
-                        has_found = true;
+                for (element_end = element_begin; element_end <= len - 1; i++) {
+                    var points = elements[element_end].points;
+                    if (points[points.length - 1].timestamp > before_time) {
                         break;
                     }
                 }
-
-                if (has_found === false) {
-                    element_end = len - 1;
-                }
-
+                // prepare for drawing
                 for (i = element_begin; i <= element_end; i++) {
                     var elm = elements[i];
-                    for (j = point_begin, n = elm.points.length; j < n; j++) {
+                    for (j = point_begin, n = elm.points.length; j <= n - 1; j++) {
                         var point = elm.points[j];
                         point_begin = j;
-                        if (point.timestamp < before_time) {
-                            // Do draw
-                        } else {
+                        if (point.timestamp > before_time) {
+                            console.log('break', j, n - 1);
                             break;
                         }
+
+                        console.log(point);
+                        replay_points.push(point);
+                        draw(elm.config, replay_points);
+
                         if (j === n - 1) {
                             point_begin = 0;
+                            replay_points = [];
+                            setElementOpacity(elm.config);
                         }
                     }
                 }
 
-                if (element_end === len - 1 && point_begin === n - 1) {
+                console.log(point_begin);
+
+                if (element_end === len - 1 && point_begin === n - 1 && replay_points === []) {
+                    console.log('exit');
                     element_begin = len;
                 } else {
                     element_begin = element_end;
                 }
 
             };
-            render();
+            _raf(render);
         },
 
         exec: function (type) {
@@ -337,11 +342,7 @@
     function endElement() {
         _internal.is_mousedown = false;
 
-        var index = _internal.config.element_index,
-            element = _get(_self.options.element_prefix + index);
-        if (element) {
-            element.setAttribute("opacity", _internal.config.opacity);
-        }
+        setElementOpacity(_internal.config);
 
         // setup redo & undo
         for (var i = _internal.redo.length - 1; i >= 0; i--) {
@@ -350,7 +351,7 @@
         for (var j = 0, n = _internal.redo.length; j < n; j++) {
             _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
         }
-        _internal.undo.push({id: index, value: "d"});
+        _internal.undo.push({id: _internal.config.element_index, value: "d"});
         _internal.redo = [];
         _internal.config.element_index ++;
         // _internal.paint_stack.head = _internal.config.element_index ++;
@@ -363,6 +364,14 @@
         }
     }
 
+    function setElementOpacity(config) {
+        console.log('opacity', config);
+        var element = _get(_self.options.element_prefix + config.element_index);
+        if (element) {
+            element.setAttribute("opacity", config.opacity);
+        }
+    }
+
     function clearPaint() {
         while (_internal.el.lastChild) {
             _internal.el.removeChild(_internal.el.lastChild);
@@ -371,26 +380,26 @@
     /**
      * Draw
      */
-    function draw(config) {
+    function draw(config, points) {
         switch (config.tool) {
         case _internal.TOOLS.PAINT:
-            drawPath(config);
+            drawPath(config, points);
             break;
         case _internal.TOOLS.LINE:
-            drawLine(config);
+            drawLine(config, points);
             break;
         }
     }
 
-    function drawPath(config) {
+    function drawPath(config, points) {
         var element_id = _self.options.element_prefix + config.element_index,
             path = _get(element_id);
         if (path) {
-            path.setAttribute("d", makeD(config.element_index));
+            path.setAttribute("d", makeD(config.element_index, points));
         } else {
             path = makeElement("path", {
                 "id": element_id,
-                "d": makeD(config.element_index),
+                "d": makeD(config.element_index, points),
                 "fill": "none",
                 "stroke": config.color,
                 "stroke-linecap": "round",
@@ -401,8 +410,8 @@
         }
     }
 
-    function makeD(element_index) {
-        var points = getPoints(element_index),
+    function makeD(element_index, points_arr) {
+        var points = points_arr || getPoints(element_index),
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = "M" + points[0].x + "," + points[0].y;
@@ -421,16 +430,16 @@
         return d;
     }
 
-    function drawLine(config) {
+    function drawLine(config, points) {
         var element_id = _self.options.element_prefix + config.element_index,
             line = _get(element_id);
         if (line) {
-            var point = getPoint(config.element_index);
+            var point = getPoint(points, config.element_index);
             line.setAttribute("x2", point.x);
             line.setAttribute("y2", point.y);
         } else {
-            var point_1 = getPoint(config.element_index, 0),
-                point_2 = getPoint(config.element_index);
+            var point_1 = getPoint(points, config.element_index, 0),
+                point_2 = getPoint(points, config.element_index);
             line = makeElement("line", {
                 "id": element_id,
                 "x1": point_1.x,
@@ -453,8 +462,8 @@
         return _internal.paint_stack.elements[element_index].points;
     }
 
-    function getPoint(element_index, point_index) {
-        var points = getPoints(element_index);
+    function getPoint(points_arr, element_index, point_index) {
+        var points = points_arr || getPoints(element_index);
         if (point_index === undefined) {
             return points[points.length - 1];
         } else {
