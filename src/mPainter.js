@@ -24,13 +24,15 @@
 
         _self = this;
         _internal = {
-            el: get(this.options.id),
+            el: _get(this.options.id),
             undo: [],
             redo: [],
 
             is_mousedown: false,
+            first_draw: true,
+            paint_start: undefined,
             paint_stack: {
-                head: -1,
+                head: 0,
                 elements: []
             },
 
@@ -92,7 +94,7 @@
         // TODO FIX: Function does not work
         saveImage: function () {
             // Create a canvas element
-            var canvas = get("mycanvas");
+            var canvas = _get("mycanvas");
             var ctx = canvas.getContext("2d");
 
             var data = new XMLSerializer().serializeToString(_internal.el);
@@ -110,8 +112,67 @@
             img.src = url;
         },
 
-        playBack: function () {
+        replay: function () {
+            var elements = _internal.paint_stack.elements,
+                len = elements.length,
+                _raf = _requestAnimationFrame();
 
+            clearPaint();
+
+            var replay_time = time(),
+                element_begin = 0,
+                point_begin = 0;
+
+            var render = function () {
+                if (element_begin < len) {
+                    _raf(render);
+                }
+
+                console.log(element_begin, point_begin);
+
+                var i, j, n, element_end,
+                    dt = time() - replay_time,
+                    before_time = _internal.paint_start + dt,
+                    has_found = false;
+
+                // search for element_end
+                for (i = element_begin; i < len; i++) {
+                    var points = elements[i].points;
+                    if (elements[i].points[points.length - 1].timestamp > before_time) {
+                        element_end = i;
+                        has_found = true;
+                        break;
+                    }
+                }
+
+                if (has_found === false) {
+                    element_end = len - 1;
+                }
+
+                for (i = element_begin; i <= element_end; i++) {
+                    var elm = elements[i];
+                    for (j = point_begin, n = elm.points.length; j < n; j++) {
+                        var point = elm.points[j];
+                        point_begin = j;
+                        if (point.timestamp < before_time) {
+                            // Do draw
+                        } else {
+                            break;
+                        }
+                        if (j === n - 1) {
+                            point_begin = 0;
+                        }
+                    }
+                }
+
+                if (element_end === len - 1 && point_begin === n - 1) {
+                    element_begin = len;
+                } else {
+                    element_begin = element_end;
+                }
+
+            };
+            render();
         },
 
         exec: function (type) {
@@ -126,14 +187,14 @@
 
                 switch (_value) {
                 case "a":
-                    _internal.paint_stack.elements[_index].is_delelted = false;
+                    _internal.paint_stack.elements[_index].is_deleted = false;
                     var config = _internal.paint_stack.elements[_index].config;
                     // fix half opacity issue
                     config.opacity *= 2;
                     draw(config);
                     break;
                 case "d":
-                    _internal.paint_stack.elements[_index].is_delelted = true;
+                    _internal.paint_stack.elements[_index].is_deleted = true;
                     removeElement(_index);
                     break;
                 }
@@ -148,15 +209,15 @@
             _internal.undo = [];
             _internal.redo = [];
             _internal.config.element_index = 0;
+            _internal.is_mousedown = false;
+            _internal.first_draw = true;
+            _internal.paint_start = undefined;
             _internal.paint_stack = {
-                head: -1,
+                head: 0,
                 elements: []
             };
-            _internal.is_mousedown = false;
 
-            while (_internal.el.lastChild) {
-                _internal.el.removeChild(_internal.el.lastChild);
-            }
+            clearPaint();
         }
 
     };
@@ -186,6 +247,12 @@
         // Fix moving in svg with text cursor issue
         e.preventDefault();
         e.stopPropagation();
+
+        // set paint_start timestamp
+        if (_internal.first_draw === true) {
+            _internal.first_draw = false;
+            _internal.paint_start = time();
+        }
 
         var point = getPointFromEvent(e);
         log("Start: " + point.x + "," + point.y);
@@ -262,7 +329,7 @@
                 color: _internal.config.color
             },
             points: [],
-            is_delelted: false
+            is_deleted: false
         };
         return _internal.paint_stack.elements[element_index];
     }
@@ -270,8 +337,8 @@
     function endElement() {
         _internal.is_mousedown = false;
 
-        var _index = _internal.config.element_index,
-            element = get(_self.options.element_prefix + _index);
+        var index = _internal.config.element_index,
+            element = _get(_self.options.element_prefix + index);
         if (element) {
             element.setAttribute("opacity", _internal.config.opacity);
         }
@@ -283,16 +350,22 @@
         for (var j = 0, n = _internal.redo.length; j < n; j++) {
             _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
         }
-        _internal.undo.push({id: _index, value: "d"});
+        _internal.undo.push({id: index, value: "d"});
         _internal.redo = [];
-
-        _internal.paint_stack.head = _internal.config.element_index ++;
+        _internal.config.element_index ++;
+        // _internal.paint_stack.head = _internal.config.element_index ++;
     }
 
     function removeElement(index) {
-        var elm = get(_self.options.element_prefix + index);
+        var elm = _get(_self.options.element_prefix + index);
         if (elm) {
             elm.parentNode.removeChild(elm);
+        }
+    }
+
+    function clearPaint() {
+        while (_internal.el.lastChild) {
+            _internal.el.removeChild(_internal.el.lastChild);
         }
     }
     /**
@@ -311,7 +384,7 @@
 
     function drawPath(config) {
         var element_id = _self.options.element_prefix + config.element_index,
-            path = get(element_id);
+            path = _get(element_id);
         if (path) {
             path.setAttribute("d", makeD(config.element_index));
         } else {
@@ -350,7 +423,7 @@
 
     function drawLine(config) {
         var element_id = _self.options.element_prefix + config.element_index,
-            line = get(element_id);
+            line = _get(element_id);
         if (line) {
             var point = getPoint(config.element_index);
             line.setAttribute("x2", point.x);
@@ -423,7 +496,7 @@
     }
 
     function updateCur(e) {
-        var cursor = get(_self.options.cursor_id);
+        var cursor = _get(_self.options.cursor_id);
         if (cursor) {
             cursor.setAttribute("cx", e.offsetX);
             cursor.setAttribute("cy", e.offsetY);
@@ -431,7 +504,7 @@
     }
 
     function removeCur() {
-        var cursor = get(_self.options.cursor_id),
+        var cursor = _get(_self.options.cursor_id),
             styleList = _internal.el.getAttribute('style');
         if (cursor) {
             cursor.parentNode.removeChild(cursor);
@@ -466,7 +539,7 @@
             x = e.changedTouches[0].clientX;
             y = e.changedTouches[0].clientY - _internal.el.offsetTop + window.scrollY;
         }
-        return { x: x, y: y };
+        return { x: x, y: y, timestamp: time() };
     }
 
     function isOutside(evt, parent) {
@@ -486,6 +559,10 @@
         if (input === "redo") return "undo";
         if (input === "undo") return "redo";
         return input;
+    }
+
+    function time() {
+        return +new Date();
     }
 
     function log(data) {
@@ -519,7 +596,16 @@
         };
     }
 
-    function get(id) {
+    function _requestAnimationFrame() {
+        return window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame  ||
+        window.mozRequestAnimationFrame     ||
+        function (callback) {
+            window.setTimeout(callback, 1000 / 60);
+        };
+    }
+
+    function _get(id) {
         return document.getElementById(id);
     }
 

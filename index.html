@@ -14,6 +14,7 @@
             <button id="canvas-undo">Undo</button>
             <button id="canvas-redo">Redo</button>
             <!-- <button id="canvas-save">Save as Image</button> -->
+            <button id="canvas-replay">Replay</button>
             <button id="canvas-clear">Reset</button>
         </div>
         <svg id="painter-svg" width="980" height="500" xmlns="http://www.w3.org/2000/svg"> </svg>
@@ -71,6 +72,9 @@
         });
         $(document).on('click', '#canvas-save', function() {
             mPainter.saveImage();
+        });
+        $(document).on('click', '#canvas-replay', function() {
+            mPainter.replay();
         });
         $(document).on('click', '#canvas-redo', function() {
             mPainter.redo();
