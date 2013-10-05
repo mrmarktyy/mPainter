@@ -29,7 +29,7 @@
             redo: [],
 
             is_mousedown: false,
-            canvasStack: {
+            paint_stack: {
                 head: -1,
                 elements: []
             },
@@ -110,6 +110,10 @@
             img.src = url;
         },
 
+        playBack: function () {
+
+        },
+
         exec: function (type) {
             // TODO: Refactor, now is checking the length of 'type' array
             if (_internal[type].length) {
@@ -122,14 +126,14 @@
 
                 switch (_value) {
                 case "a":
-                    _internal.canvasStack.elements[_index].is_delelted = false;
-                    var config = _internal.canvasStack.elements[_index].config;
+                    _internal.paint_stack.elements[_index].is_delelted = false;
+                    var config = _internal.paint_stack.elements[_index].config;
                     // fix half opacity issue
                     config.opacity *= 2;
                     draw(config);
                     break;
                 case "d":
-                    _internal.canvasStack.elements[_index].is_delelted = true;
+                    _internal.paint_stack.elements[_index].is_delelted = true;
                     removeElement(_index);
                     break;
                 }
@@ -144,7 +148,7 @@
             _internal.undo = [];
             _internal.redo = [];
             _internal.config.element_index = 0;
-            _internal.canvasStack = {
+            _internal.paint_stack = {
                 head: -1,
                 elements: []
             };
@@ -249,7 +253,7 @@
     }
 
     function initElement(element_index) {
-        _internal.canvasStack.elements[element_index] = {
+        _internal.paint_stack.elements[element_index] = {
             config: {
                 element_index: element_index,
                 tool: _internal.config.tool,
@@ -260,7 +264,7 @@
             points: [],
             is_delelted: false
         };
-        return _internal.canvasStack.elements[element_index];
+        return _internal.paint_stack.elements[element_index];
     }
 
     function endElement() {
@@ -282,7 +286,7 @@
         _internal.undo.push({id: _index, value: "d"});
         _internal.redo = [];
 
-        _internal.canvasStack.head = _internal.config.element_index ++;
+        _internal.paint_stack.head = _internal.config.element_index ++;
     }
 
     function removeElement(index) {
@@ -370,10 +374,10 @@
     }
 
     function getPoints(element_index) {
-        if (_internal.canvasStack.elements[element_index] === undefined) {
+        if (_internal.paint_stack.elements[element_index] === undefined) {
             return initElement(element_index).points;
         }
-        return _internal.canvasStack.elements[element_index].points;
+        return _internal.paint_stack.elements[element_index].points;
     }
 
     function getPoint(element_index, point_index) {
