@@ -52,11 +52,12 @@ We're improving everyday !
 * strip off jQuery dependency ✓
 * undo/redo support ✓
 * tablets, mobile devices and win8 point screen support ✓
+* replay support ✓
 
 Road Map
 ----
 
-* support save/replay of painting
+* support save of painting
 * support direct upload painting to AWS S3
 * support various shapes (line, square, eclipse, etc)
 * support layer based functions including resize, flip, rotate, etc
@@ -67,5 +68,5 @@ LICENCE
 
 This project is under [MIT] licence
 
-[DEMO]:http://paint.tantanguanguan.com
+[DEMO]: http://paint.tantanguanguan.com
 [MIT]: http://en.wikipedia.org/wiki/MIT_License

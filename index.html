@@ -10,11 +10,12 @@
     <div class="container">
         <h1>mPainter Demo</h1>
         <div class="button-group">
-            <span style="float:right;">v0.1.2</span>
+            <span style="float:right;">v0.3.0</span>
             <button id="canvas-undo">Undo</button>
             <button id="canvas-redo">Redo</button>
             <!-- <button id="canvas-save">Save as Image</button> -->
-            <button id="canvas-clear">Clear Canvas</button>
+            <button id="canvas-replay">Replay</button>
+            <button id="canvas-clear">Reset</button>
         </div>
         <svg id="painter-svg" width="980" height="500" xmlns="http://www.w3.org/2000/svg"> </svg>
         <div id="paint-config">
@@ -43,7 +44,7 @@
             </div>
             <hr />
             <div id="size-selector">
-                <span>Painter Size: </span>
+                <span>Size: </span>
                 <ul>
                     <li class="selected"><div class="paint-size" style="background-color:#FF0000;width:6px;height:6px;"></div></li>
                     <li><div class="paint-size" style="background-color:#FF0000;width:10px;height:10px;"></div></li>
@@ -52,7 +53,6 @@
             </div>
         </div>
     </div>
-    <canvas id="mycanvas" width="980" height="500"></canvas>
     <script src="vendor/jquery.js"></script>
     <script src="src/mPainter.js"></script>
     <script>
@@ -73,13 +73,16 @@
         $(document).on('click', '#canvas-save', function() {
             mPainter.saveImage();
         });
+        $(document).on('click', '#canvas-replay', function() {
+            mPainter.replay();
+        });
         $(document).on('click', '#canvas-redo', function() {
             mPainter.redo();
         });
         /**
          * Color Selector
          */
-        $(document).on("click", "#color-selector ul li", function() {
+        $(document).on("click touchstart", "#color-selector ul li", function() {
             var hex = $(this).css("background-color");
             $("#paint-color, .paint-size").css("background-color", hex);
             $("#custom-color").val(rgb2hex(hex).toUpperCase());
@@ -101,7 +104,7 @@
         /**
          * Size Selector
          */
-        $(document).on('click', '#size-selector ul li', function () {
+        $(document).on('click touchstart', '#size-selector ul li', function () {
             $("#size-selector ul li").removeClass("selected");
             $(this).addClass("selected");
 

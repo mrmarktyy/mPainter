@@ -1,7 +1,7 @@
 {
   "name": "mPainter",
-  "version": "0.1.2",
-  "description": "mPainter is a simple and easy to use SVG painting library, which will create or convert SVG element to be a painting board.",
+  "version": "0.3.0",
+  "description": "mPainter is a simple, light-weighted, dependency free SVG painting widget library, which can easily create or convert a DOM element to a SVG painting board.",
   "main": "index.html",
   "repository": {
     "type": "git",

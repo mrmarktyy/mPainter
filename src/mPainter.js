@@ -16,21 +16,23 @@
                 element_prefix: "element_",
                 tool: "PAINT",
 
-                startTrigger : ['mousedown', 'touchstart', 'MSPointerDown'],
-                moveTrigger  : ['mousemove', 'touchmove', 'MSPointerMove'],
-                stopTrigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
+                start_trigger : ['mousedown', 'touchstart', 'MSPointerDown'],
+                move_trigger  : ['mousemove', 'touchmove', 'MSPointerMove'],
+                stop_trigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
             };
         this.options = _extend(defaults, options);
 
         _self = this;
         _internal = {
-            el: get(this.options.id),
+            el: _get(this.options.id),
             undo: [],
             redo: [],
 
             is_mousedown: false,
-            canvasStack: {
-                head: -1,
+            first_draw: true,
+            paint_start: undefined,
+            paint_stack: {
+                head: 0,
                 elements: []
             },
 
@@ -89,13 +91,10 @@
         redo: function () {
             this.exec("redo");
         },
-        // TODO: Function does not workk at the moment
+        // TODO FIX: Function does not work
         saveImage: function () {
             // Create a canvas element
-            // var canvas = document.createElement('canvas');
-            // canvas.width = 980;
-            // canvas.height = 500;
-            var canvas = get("mycanvas");
+            var canvas = _get("mycanvas");
             var ctx = canvas.getContext("2d");
 
             var data = new XMLSerializer().serializeToString(_internal.el);
@@ -108,10 +107,65 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 // DOMURL.revokeObjectURL(url);
                 var b64 = canvas.toDataURL("image/png");
-                console.log(b64);
             };
-            img.crossOrigin = 'anonymous';
             img.src = url;
+        },
+
+        replay: function (callback) {
+            var elements = _internal.paint_stack.elements,
+                elements_length = elements.length,
+                _raf = _requestAnimationFrame(),
+                replay_time = time(),
+                element_begin = 0,
+                point_begin = 0,
+                number_drew = 0,
+                replay_points = [];
+
+            clearPaint();
+            var render = function () {
+                var i, j, element_end,
+                    before_time = _internal.paint_start + (time() - replay_time);
+                // find element_end
+                for (element_end = element_begin; element_end <= elements_length - 1; element_end++) {
+                    var points = elements[element_end].points;
+                    if (points[points.length - 1].timestamp > before_time) {
+                        break;
+                    }
+                }
+                if (element_end > elements_length - 1) {
+                    element_end = elements_length - 1;
+                }
+
+                for (i = element_begin; i <= element_end; i++) {
+                    var element = elements[i],
+                        points_length = element.points.length;
+                    for (j = point_begin; j < points_length; j++) {
+                        var point = element.points[j];
+                        if (point.timestamp > before_time) {
+                            point_begin = j;
+                            break;
+                        }
+                        replay_points.push(point);
+                        draw(element.config, replay_points);
+                        if (replay_points.length === points_length) {
+                            point_begin = 0;
+                            replay_points = [];
+                            number_drew ++;
+                            setElementOpacity(element.config);
+                        }
+                    }
+                }
+                // If replay not done do recursion, otherwise execute callback
+                if (number_drew === elements_length) {
+                    if (callback !== undefined && isFunction(callback)) {
+                        callback();
+                    }
+                } else {
+                    element_begin = element_end;
+                    _raf(render);
+                }
+            };
+            _raf(render);
         },
 
         exec: function (type) {
@@ -126,20 +180,20 @@
 
                 switch (_value) {
                 case "a":
-                    _internal.canvasStack.elements[_index].is_delelted = false;
-                    var config = _internal.canvasStack.elements[_index].config;
+                    _internal.paint_stack.elements[_index].is_deleted = false;
+                    var config = _internal.paint_stack.elements[_index].config;
                     // fix half opacity issue
                     config.opacity *= 2;
                     draw(config);
                     break;
                 case "d":
-                    _internal.canvasStack.elements[_index].is_delelted = true;
+                    _internal.paint_stack.elements[_index].is_deleted = true;
                     removeElement(_index);
                     break;
                 }
             }
         },
-
+        // TODO REMOVE: development use only
         getInternal: function () {
             return _internal;
         },
@@ -148,72 +202,88 @@
             _internal.undo = [];
             _internal.redo = [];
             _internal.config.element_index = 0;
-            _internal.canvasStack = {
-                head: -1,
+            _internal.is_mousedown = false;
+            _internal.first_draw = true;
+            _internal.paint_start = undefined;
+            _internal.paint_stack = {
+                head: 0,
                 elements: []
             };
-            _internal.is_mousedown = false;
 
-            while (_internal.el.lastChild) {
-                _internal.el.removeChild(_internal.el.lastChild);
-            }
+            clearPaint();
         }
 
     };
-
+    // TODO REFACTOR:
     function bindEvents() {
-        _forEach(_self.options.startTrigger, function (eventType) {
-            _addEventListener(_internal.el, eventType, paintStart);
+        _self.options.start_trigger.forEach(function (eventType) {
+            _internal.el.addEventListener(eventType, paintStart, false);
         });
-        _forEach(_self.options.moveTrigger, function (eventType) {
-            _addEventListener(_internal.el, eventType, paintMove);
+        _self.options.move_trigger.forEach(function (eventType) {
+            _internal.el.addEventListener(eventType, paintMove, false);
         });
-        _forEach(_self.options.stopTrigger, function (eventType) {
-            _addEventListener(_internal.el, eventType, paintStop);
+        _self.options.stop_trigger.forEach(function (eventType) {
+            _internal.el.addEventListener(eventType, paintStop, false);
         });
-        _addEventListener(_internal.el, "mouseover", mouseOver);
-        _addEventListener(_internal.el, "mouseout", mouseOut);
+        _internal.el.addEventListener("mouseover", mouseOver, false);
+        _internal.el.addEventListener("mouseout", mouseOut, false);
     }
-
     // function _eventHandler(e) {
     //     if (_internal.EVENTS[e.type] && typeof _internal.EVENTS[e.type] === "function") {
     //         _internal.EVENTS[e.type].call(_self, e);
     //     }
     // }
     /**
-     * Events han
+     * Events handlers
      */
     function paintStart(e) {
-        log("Mouse down: " + e.offsetX + "," + e.offsetY);
-        // Fix dragging in svg with text cursor issue
+        // Fix moving in svg with text cursor issue
         e.preventDefault();
+        e.stopPropagation();
 
-        addPoint(getPointFromEvent(e));
+        // set paint_start timestamp
+        if (_internal.first_draw === true) {
+            _internal.first_draw = false;
+            _internal.paint_start = time();
+        }
+
+        var point = getPointFromEvent(e);
+        log("Start: " + point.x + "," + point.y);
+
+        addPoint(point);
 
         _internal.is_mousedown = true;
     }
-    // TODO: Add throttle
+    // TODO: Add throttle if necessary
     function paintMove(e) {
         if (_internal.is_mousedown === true) {
-            log("Mouse move to: " + e.offsetX + "," + e.offsetY);
+            e.preventDefault();
+            e.stopPropagation();
 
-            addPoint(getPointFromEvent(e));
+            var point = getPointFromEvent(e);
+            log("Move: " + point.x + "," + point.y);
+
+            addPoint(point);
         }
+
         updateCur(e);
     }
 
     function paintStop(e) {
-        if (_internal.is_mousedown === true) {
-            log("Mouse up: " + e.offsetX + "," + e.offsetY);
-            addPoint(getPointFromEvent(e));
+        e.preventDefault();
+        e.stopPropagation();
 
-            endElement();
-        }
+        var point = getPointFromEvent(e);
+        log('Stop: ' + point.x + ',' + point.y);
+
+        addPoint(point);
+
+        endElement();
     }
 
     function mouseOver(e) {
         if (isOutside(e, _internal.el)) {
-            log("Mouse enter", e);
+            log('Enter', e);
 
             newCur(e);
         }
@@ -224,10 +294,11 @@
         var toElement = e.toElement ? e.toElement : e.relatedTarget;
         if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
             if (_internal.is_mousedown === true) {
-                log("Mouse out: " + e.offsetX + "," + e.offsetY);
+                log('Out', e);
 
                 endElement();
             }
+
             removeCur();
         }
     }
@@ -235,43 +306,31 @@
      * Core
      */
     function addPoint(point) {
-        getPoints(_internal.config.element_index).push(point);
+        var points_arr = getPoints(_internal.config.element_index);
+        points_arr.push(point);
+
         draw(_internal.config);
     }
 
-    function _initElements(index) {
-        _internal.canvasStack.elements[index] = {
+    function initElement(element_index) {
+        _internal.paint_stack.elements[element_index] = {
             config: {
-                element_index: index,
+                element_index: element_index,
                 tool: _internal.config.tool,
                 painter_radius: _internal.config.painter_radius,
                 opacity: _internal.config.opacity,
                 color: _internal.config.color
             },
             points: [],
-            is_delelted: false
+            is_deleted: false
         };
-        return _internal.canvasStack.elements[index];
-    }
-
-    function makeElement(tag, attrs) {
-        var elm = document.createElementNS("http://www.w3.org/2000/svg", tag);
-        for (var i in attrs) {
-            if (attrs.hasOwnProperty(i)) {
-                elm.setAttribute(i, attrs[i]);
-            }
-        }
-        return elm;
+        return _internal.paint_stack.elements[element_index];
     }
 
     function endElement() {
         _internal.is_mousedown = false;
 
-        var _index = _internal.config.element_index,
-            element = get(_self.options.element_prefix + _index);
-        if (element) {
-            element.setAttribute("opacity", _internal.config.opacity);
-        }
+        setElementOpacity(_internal.config);
 
         // setup redo & undo
         for (var i = _internal.redo.length - 1; i >= 0; i--) {
@@ -280,41 +339,54 @@
         for (var j = 0, n = _internal.redo.length; j < n; j++) {
             _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
         }
-        _internal.undo.push({id: _index, value: "d"});
+        _internal.undo.push({id: _internal.config.element_index, value: "d"});
         _internal.redo = [];
-
-        _internal.canvasStack.head = _internal.config.element_index ++;
+        _internal.config.element_index ++;
+        // _internal.paint_stack.head = _internal.config.element_index ++;
     }
 
     function removeElement(index) {
-        var elm = get(_self.options.element_prefix + index);
+        var elm = _get(_self.options.element_prefix + index);
         if (elm) {
             elm.parentNode.removeChild(elm);
+        }
+    }
+
+    function setElementOpacity(config) {
+        var element = _get(_self.options.element_prefix + config.element_index);
+        if (element) {
+            element.setAttribute("opacity", config.opacity);
+        }
+    }
+
+    function clearPaint() {
+        while (_internal.el.lastChild) {
+            _internal.el.removeChild(_internal.el.lastChild);
         }
     }
     /**
      * Draw
      */
-    function draw(config) {
+    function draw(config, points) {
         switch (config.tool) {
         case _internal.TOOLS.PAINT:
-            drawPath(config);
+            drawPath(config, points);
             break;
         case _internal.TOOLS.LINE:
-            drawLine(config);
+            drawLine(config, points);
             break;
         }
     }
 
-    function drawPath(config) {
+    function drawPath(config, points) {
         var element_id = _self.options.element_prefix + config.element_index,
-            path = get(element_id);
+            path = _get(element_id);
         if (path) {
-            path.setAttribute("d", makeD(config.element_index));
+            path.setAttribute("d", makeD(config.element_index, points));
         } else {
             path = makeElement("path", {
                 "id": element_id,
-                "d": makeD(config.element_index),
+                "d": makeD(config.element_index, points),
                 "fill": "none",
                 "stroke": config.color,
                 "stroke-linecap": "round",
@@ -325,12 +397,12 @@
         }
     }
 
-    function makeD(index) {
-        var points = getPoints(index),
+    function makeD(element_index, points_arr) {
+        var points = points_arr || getPoints(element_index),
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = "M" + points[0].x + "," + points[0].y;
-        // dealting with if only has 1-3 points
+        // if only has 1-3 points
         if (len === 1) {
             return d;
         }
@@ -345,16 +417,16 @@
         return d;
     }
 
-    function drawLine(config) {
+    function drawLine(config, points) {
         var element_id = _self.options.element_prefix + config.element_index,
-            line = get(element_id);
+            line = _get(element_id);
         if (line) {
-            var point = getPoint(config.element_index);
+            var point = getPoint(points, config.element_index);
             line.setAttribute("x2", point.x);
             line.setAttribute("y2", point.y);
         } else {
-            var point_1 = getPoint(config.element_index, 0),
-                point_2 = getPoint(config.element_index);
+            var point_1 = getPoint(points, config.element_index, 0),
+                point_2 = getPoint(points, config.element_index);
             line = makeElement("line", {
                 "id": element_id,
                 "x1": point_1.x,
@@ -371,21 +443,20 @@
     }
 
     function getPoints(element_index) {
-        if (_internal.canvasStack.elements[element_index] === undefined) {
-            return _initElements(element_index).points;
+        if (_internal.paint_stack.elements[element_index] === undefined) {
+            return initElement(element_index).points;
         }
-        return _internal.canvasStack.elements[element_index].points;
+        return _internal.paint_stack.elements[element_index].points;
     }
 
-    function getPoint(element_index, point_index) {
-        var points = getPoints(element_index);
+    function getPoint(points_arr, element_index, point_index) {
+        var points = points_arr || getPoints(element_index);
         if (point_index === undefined) {
             return points[points.length - 1];
         } else {
             return points[point_index];
         }
     }
-
     /**
      * Cursor
      */
@@ -421,7 +492,7 @@
     }
 
     function updateCur(e) {
-        var cursor = get(_self.options.cursor_id);
+        var cursor = _get(_self.options.cursor_id);
         if (cursor) {
             cursor.setAttribute("cx", e.offsetX);
             cursor.setAttribute("cy", e.offsetY);
@@ -429,7 +500,7 @@
     }
 
     function removeCur() {
-        var cursor = get(_self.options.cursor_id),
+        var cursor = _get(_self.options.cursor_id),
             styleList = _internal.el.getAttribute('style');
         if (cursor) {
             cursor.parentNode.removeChild(cursor);
@@ -438,15 +509,33 @@
             _internal.el.setAttribute("style", styleList.replace(/cursor:crosshair;/, ''));
         }
     }
-
     /**
      * Helper methods
      */
-    function getPointFromEvent(e) {
-        return {
-            x: e.offsetX,
-            y: e.offsetY
-        };
+    function makeElement(tag, attrs) {
+        var elm = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (var i in attrs) {
+            if (attrs.hasOwnProperty(i)) {
+                elm.setAttribute(i, attrs[i]);
+            }
+        }
+        return elm;
+    }
+     // normalize events
+    function getPointFromEvent(event) {
+        var e = event || window.event,
+            x, y;
+        if (!isTouch(e)) {
+            x = e.offsetX;
+            y = e.offsetY;
+        } else if (e.targetTouches.length) {
+            x = e.targetTouches[0].clientX;
+            y = e.targetTouches[0].clientY - _internal.el.offsetTop + window.scrollY;
+        } else {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY - _internal.el.offsetTop + window.scrollY;
+        }
+        return { x: x, y: y, timestamp: time() };
     }
 
     function isOutside(evt, parent) {
@@ -468,10 +557,22 @@
         return input;
     }
 
+    function time() {
+        return +new Date();
+    }
+
     function log(data) {
         if (_self.options.debug === true) {
             console.log(data);
         }
+    }
+
+    function isTouch(e) {
+        return event.type.search('touch') > -1;
+    }
+
+    function isFunction(fn) {
+        return typeof fn === 'function';
     }
     /**
      * Shim methods
@@ -495,24 +596,16 @@
         };
     }
 
-    function _forEach(collections, fn, context) {
-        for (var i = 0, n = collections.length; i < n; i++) {
-            fn.call(context || null, collections[i], i, collections);
-        }
+    function _requestAnimationFrame() {
+        return window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame  ||
+        window.mozRequestAnimationFrame     ||
+        function (callback) {
+            window.setTimeout(callback, 1000 / 60);
+        };
     }
 
-    function _addEventListener(obj, eventType, handler) {
-        if (window.addEventListener) {
-            obj.addEventListener(eventType, handler, false);
-        } else if (window.attachEvent) {
-            obj.attachEvent('on' + eventType, handler);
-        } else {
-            throw "Event type: " + eventType + " is not supported";
-        }
-    }
-
-
-    function get(id) {
+    function _get(id) {
         return document.getElementById(id);
     }
 
