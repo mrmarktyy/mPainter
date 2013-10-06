@@ -157,7 +157,9 @@
                 }
                 // If replay not done do recursion, otherwise execute callback
                 if (number_drew === elements_length) {
-                    callback && callback();
+                    if (callback !== undefined && isFunction(callback)) {
+                        callback();
+                    }
                 } else {
                     element_begin = element_end;
                     _raf(render);
@@ -567,6 +569,10 @@
 
     function isTouch(e) {
         return event.type.search('touch') > -1;
+    }
+
+    function isFunction(fn) {
+        return typeof fn === 'function';
     }
     /**
      * Shim methods
