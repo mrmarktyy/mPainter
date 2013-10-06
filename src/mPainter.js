@@ -122,44 +122,47 @@
                 replay_points = [];
 
             clearPaint();
-            console.log(elements);
 
             var render = function () {
+                console.log('in render', element_begin, point_begin);
                 // stop repeat
                 if (element_begin >= len) {
                     return;
                 }
                 _raf(render);
 
-                console.log(element_begin, point_begin);
-
                 var i, j, n, element_end,
                     dt = time() - replay_time,
                     before_time = _internal.paint_start + dt;
 
                 // search for element_end
-                for (element_end = element_begin; element_end <= len - 1; i++) {
+                for (element_end = element_begin; element_end <= len - 1; element_end++) {
                     var points = elements[element_end].points;
                     if (points[points.length - 1].timestamp > before_time) {
                         break;
                     }
+                }
+                console.log('element_end', element_end);
+                if (element_end > len - 1) {
+                    console.log('last in elements');
+                    element_end = len - 1;
                 }
                 // prepare for drawing
                 for (i = element_begin; i <= element_end; i++) {
                     var elm = elements[i];
                     for (j = point_begin, n = elm.points.length; j <= n - 1; j++) {
                         var point = elm.points[j];
-                        point_begin = j;
                         if (point.timestamp > before_time) {
-                            console.log('break', j, n - 1);
+                            point_begin = j;
+                            console.log('break, next point: ', point_begin);
                             break;
                         }
 
-                        console.log(point);
                         replay_points.push(point);
                         draw(elm.config, replay_points);
+                        console.log('drew: ', j, replay_points.length, n - 1);
 
-                        if (j === n - 1) {
+                        if (replay_points.length === n - 1) {
                             point_begin = 0;
                             replay_points = [];
                             setElementOpacity(elm.config);
@@ -167,12 +170,12 @@
                     }
                 }
 
-                console.log(point_begin);
 
-                if (element_end === len - 1 && point_begin === n - 1 && replay_points === []) {
+                if (element_end === len - 1 && point_begin === n - 1 && replay_points.length === 0) {
                     console.log('exit');
                     element_begin = len;
                 } else {
+                    console.log('continue');
                     element_begin = element_end;
                 }
 
@@ -365,7 +368,6 @@
     }
 
     function setElementOpacity(config) {
-        console.log('opacity', config);
         var element = _get(_self.options.element_prefix + config.element_index);
         if (element) {
             element.setAttribute("opacity", config.opacity);
