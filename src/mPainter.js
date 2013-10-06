@@ -107,78 +107,61 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 // DOMURL.revokeObjectURL(url);
                 var b64 = canvas.toDataURL("image/png");
-                console.log(b64);
             };
             img.src = url;
         },
 
-        replay: function () {
+        replay: function (callback) {
             var elements = _internal.paint_stack.elements,
-                len = elements.length,
+                elements_length = elements.length,
                 _raf = _requestAnimationFrame(),
                 replay_time = time(),
                 element_begin = 0,
                 point_begin = 0,
+                number_drew = 0,
                 replay_points = [];
 
             clearPaint();
-
             var render = function () {
-                console.log('in render', element_begin, point_begin);
-                // stop repeat
-                if (element_begin >= len) {
-                    return;
-                }
-                _raf(render);
-
-                var i, j, n, element_end,
-                    dt = time() - replay_time,
-                    before_time = _internal.paint_start + dt;
-
-                // search for element_end
-                for (element_end = element_begin; element_end <= len - 1; element_end++) {
+                var i, j, element_end,
+                    before_time = _internal.paint_start + (time() - replay_time);
+                // find element_end
+                for (element_end = element_begin; element_end <= elements_length - 1; element_end++) {
                     var points = elements[element_end].points;
                     if (points[points.length - 1].timestamp > before_time) {
                         break;
                     }
                 }
-                console.log('element_end', element_end);
-                if (element_end > len - 1) {
-                    console.log('last in elements');
-                    element_end = len - 1;
+                if (element_end > elements_length - 1) {
+                    element_end = elements_length - 1;
                 }
-                // prepare for drawing
+
                 for (i = element_begin; i <= element_end; i++) {
-                    var elm = elements[i];
-                    for (j = point_begin, n = elm.points.length; j <= n - 1; j++) {
-                        var point = elm.points[j];
+                    var element = elements[i],
+                        points_length = element.points.length;
+                    for (j = point_begin; j < points_length; j++) {
+                        var point = element.points[j];
                         if (point.timestamp > before_time) {
                             point_begin = j;
-                            console.log('break, next point: ', point_begin);
                             break;
                         }
-
                         replay_points.push(point);
-                        draw(elm.config, replay_points);
-                        console.log('drew: ', j, replay_points.length, n - 1);
-
-                        if (replay_points.length === n - 1) {
+                        draw(element.config, replay_points);
+                        if (replay_points.length === points_length) {
                             point_begin = 0;
                             replay_points = [];
-                            setElementOpacity(elm.config);
+                            number_drew ++;
+                            setElementOpacity(element.config);
                         }
                     }
                 }
-
-
-                if (element_end === len - 1 && point_begin === n - 1 && replay_points.length === 0) {
-                    console.log('exit');
-                    element_begin = len;
+                // If replay not done do recursion, otherwise execute callback
+                if (number_drew === elements_length) {
+                    callback && callback();
                 } else {
-                    console.log('continue');
                     element_begin = element_end;
+                    _raf(render);
                 }
-
             };
             _raf(render);
         },
