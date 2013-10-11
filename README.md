@@ -1,7 +1,7 @@
 Introduction
 ========
 
-**mPainter** is a simple, light-weighted, no dependencies SVG painting widget library, which can easily embed a painting board wherever on your page.
+**mPainter** is a simple, light-weighted, no dependencies SVG based painting widget library, which can easily embed a painting board wherever on your page.
 
 Please see [Demo page]
 
@@ -10,15 +10,15 @@ Please see [Demo page]
 
 1. Embedding the script before the closing body tag in your HTML
 
-        <script src="app/src/mPainter.js"></script>
+    <script src="app/src/mPainter.js"></script>
 
 2. Put a DOM element where you want to the painting board to be
 
-        <div id='painting-board'></div>
+    <div id='painting-board'></div>
 
 3. Initialize the painting board with a simple line code. And that's it, start painting !
 
-        var mPainter = new mPainter('painting-board');
+    var mPainter = new mPainter('painting-board');
 
 4. More configuration options are available, please see documentation for details.
 
