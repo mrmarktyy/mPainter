@@ -96,7 +96,7 @@
             var hex = $(this).val();
             // valid hex
             if (/^#([A-Fa-f0-9]{3}$)|([A-Fa-f0-9]{6}$)/.test(hex)) {
-                $("#color-selector .paint-color, .paint-size").css('background-color', hex);
+                $("#paint-color, .paint-size").css('background-color', hex);
 
                 mPainter.setColor(hex);
             }
