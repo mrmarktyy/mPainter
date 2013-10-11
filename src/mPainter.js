@@ -116,6 +116,7 @@
                 elements_length = elements.length,
                 _raf = _requestAnimationFrame(),
                 replay_time = time(),
+                deleted_time = 0,
                 element_begin = 0,
                 point_begin = 0,
                 number_drew = 0,
@@ -124,11 +125,18 @@
             clearPaint();
             var render = function () {
                 var i, j, element_end,
-                    before_time = _internal.paint_start + (time() - replay_time);
+                    before_time = _internal.paint_start + deleted_time + (time() - replay_time);
                 // find element_end
                 for (element_end = element_begin; element_end <= elements_length - 1; element_end++) {
-                    var points = elements[element_end].points;
-                    if (points[points.length - 1].timestamp > before_time) {
+                    var points = elements[element_end].points,
+                        first_timestamp = points[0].timestamp,
+                        last_timestamp = points[points.length - 1].timestamp;
+                    if (elements[element_end].is_deleted === true) {
+                        deleted_time += last_timestamp - first_timestamp;
+                        console.log(deleted_time);
+                        continue;
+                    }
+                    if (last_timestamp > before_time) {
                         break;
                     }
                 }
@@ -139,6 +147,9 @@
                 for (i = element_begin; i <= element_end; i++) {
                     var element = elements[i],
                         points_length = element.points.length;
+                    if (element.is_deleted === true) {
+                        continue;
+                    }
                     for (j = point_begin; j < points_length; j++) {
                         var point = element.points[j];
                         if (point.timestamp > before_time) {
