@@ -11,12 +11,8 @@ body,p,ul,li,ol {
     width:980px;
     margin:0 auto;
 }
-.button-group {
-	margin:10px 0;
-}
-#painter-svg {
-    border: 1px dashed #A6A6A6;
-    cursor:none;
+#paint-board {
+    border:1px dashed #A6A6A6;cursor:none;
 }
 
 #color-selector ul {
@@ -69,4 +65,29 @@ body,p,ul,li,ol {
 	top:0;
 	right:0;
 	border:0;
+}
+/**
+ * Widgets UI
+ */
+.mpainter-buttons-group ul {
+    list-style:none;
+    font-size: 12px;
+}
+.mpainter-buttons-group ul li {
+    display: inline-block;
+    padding: 4px;
+    margin: 0 5px 5px 0;
+    border: 1px solid #DDD;
+    background: #FEFEFE;
+    min-height: 20px;
+    max-height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+.mpainter-buttons-group ul li:hover {
+    background: #F6F6F6;
+}
+.mpainter-buttons-group ul li span {
+    padding: 0 3px;
 }

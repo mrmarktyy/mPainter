@@ -3,26 +3,62 @@
 
     var mPainter = window.mPainter || {},
         _internal = {},
-        _self;
+        _self,
+        _xmlns = 'http://www.w3.org/2000/svg';
 
     /**
      * Initialization
      */
-    mPainter = function (options) {
+    mPainter = function (hook, options) {
         var defaults = {
-                debug: false,
-                id: "mysvg",
+                id: "paint-board",
                 cursor_id: "cursor",
                 element_prefix: "element_",
                 tool: "PAINT",
 
+                width: 600,
+                height: 400,
+                hook_id: hook,
+
                 start_trigger : ['mousedown', 'touchstart', 'MSPointerDown'],
                 move_trigger  : ['mousemove', 'touchmove', 'MSPointerMove'],
                 stop_trigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
-            };
-        this.options = _extend(defaults, options);
 
+                debug: false,
+
+                ICONS: {
+                    UNDO: {
+                        text: 'Undo',
+                        code: '\u21B6'
+                    },
+                    REDO: {
+                        text: 'Redo',
+                        code: '\u21B7'
+                    },
+                    REPLAY: {
+                        text: 'Replay',
+                        code: '\u27F3'
+                    },
+                    RESET: {
+                        text: 'Reset',
+                        code: '\u2672',
+                    },
+                    PAINT: {
+                        text: 'Paint',
+                        code: '\u2710'
+                    },
+                    LINE: {
+                        text: 'Line',
+                        code: '\u2711'
+                    }
+                }
+            };
+
+        this.options = _extend(defaults, options);
         _self = this;
+
+        renderUI();
+
         _internal = {
             el: _get(this.options.id),
             undo: [],
@@ -225,6 +261,47 @@
         }
 
     };
+    /**
+     * Render paint board and required buttons
+     */
+    function renderUI() {
+        renderPaintBoard();
+        renderWidgets();
+    }
+    function renderPaintBoard() {
+        var hook = _get(_self.options.hook_id);
+        if (!hook) {
+            throw 'Hook #: ' + _self.options.hook_id + ' is not found on the page. mPainter initilization failure.';
+        }
+        var _svg = makeElement('svg', {
+            'id': _self.options.id,
+            'width': _self.options.width,
+            'height': _self.options.height,
+        });
+        hook.appendChild(_svg);
+    }
+    function renderWidgets() {
+        var hook = _get(_self.options.hook_id),
+            buttons_group = document.createElement('div');
+        buttons_group.setAttribute('class', 'mpainter-buttons-group');
+
+        var ul = document.createElement('ul');
+        for (var icon_type  in _self.options.ICONS) {
+            if (_self.options.ICONS.hasOwnProperty(icon_type)) {
+                var icon_config = _self.options.ICONS[icon_type],
+                    li = document.createElement('li'),
+                    span = document.createElement('span');
+                span.appendChild(document.createTextNode(icon_config.code));
+                li.appendChild(span);
+                li.appendChild(document.createTextNode(icon_config.text));
+                li.setAttribute('id', 'icon-' + icon_type.toLowerCase());
+                bindClick(li, icon_type);
+                ul.appendChild(li);
+            }
+        }
+        buttons_group.appendChild(ul);
+        hook.insertBefore(buttons_group, hook.childNodes[0]);
+    }
     // TODO REFACTOR:
     function bindEvents() {
         _self.options.start_trigger.forEach(function (eventType) {
@@ -238,6 +315,34 @@
         });
         _internal.el.addEventListener("mouseover", mouseOver, false);
         _internal.el.addEventListener("mouseout", mouseOut, false);
+    }
+    function bindClick(el, type) {
+        var _method, _args;
+        switch (type) {
+        case 'UNDO':
+            _method = 'undo';
+            break;
+        case 'REDO':
+            _method = 'redo';
+            break;
+        case 'REPLAY':
+            _method = 'replay';
+            break;
+        case 'RESET':
+            _method = 'reset';
+            break;
+        case 'PAINT':
+            _method = 'setTool';
+            _args = [type];
+            break;
+        case 'LINE':
+            _method = 'setTool';
+            _args = [type];
+            break;
+        }
+        if (typeof _self[_method] === 'function') {
+            el.addEventListener('click', _bind(_self[_method], _self, _args), false);
+        }
     }
     // function _eventHandler(e) {
     //     if (_internal.EVENTS[e.type] && typeof _internal.EVENTS[e.type] === "function") {
@@ -261,7 +366,7 @@
         var point = getPointFromEvent(e);
         log("Start: " + point.x + "," + point.y);
 
-        addPoint(point);
+        addPoint(point, _internal.config);
 
         _internal.is_mousedown = true;
     }
@@ -274,7 +379,7 @@
             var point = getPointFromEvent(e);
             log("Move: " + point.x + "," + point.y);
 
-            addPoint(point);
+            addPoint(point, _internal.config);
         }
 
         updateCur(e);
@@ -287,7 +392,7 @@
         var point = getPointFromEvent(e);
         log('Stop: ' + point.x + ',' + point.y);
 
-        addPoint(point);
+        addPoint(point, _internal.config);
 
         endElement();
     }
@@ -316,11 +421,10 @@
     /**
      * Core
      */
-    function addPoint(point) {
-        var points_arr = getPoints(_internal.config.element_index);
-        points_arr.push(point);
+    function addPoint(point, config) {
+        getPointsArr(config.element_index).push(point);
 
-        draw(_internal.config);
+        draw(config);
     }
 
     function initElement(element_index) {
@@ -409,7 +513,7 @@
     }
 
     function makeD(element_index, points_arr) {
-        var points = points_arr || getPoints(element_index),
+        var points = points_arr || getPointsArr(element_index),
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = "M" + points[0].x + "," + points[0].y;
@@ -453,7 +557,7 @@
         }
     }
 
-    function getPoints(element_index) {
+    function getPointsArr(element_index) {
         if (_internal.paint_stack.elements[element_index] === undefined) {
             return initElement(element_index).points;
         }
@@ -461,7 +565,7 @@
     }
 
     function getPoint(points_arr, element_index, point_index) {
-        var points = points_arr || getPoints(element_index);
+        var points = points_arr || getPointsArr(element_index);
         if (point_index === undefined) {
             return points[points.length - 1];
         } else {
@@ -524,7 +628,7 @@
      * Helper methods
      */
     function makeElement(tag, attrs) {
-        var elm = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        var elm = document.createElementNS(_xmlns, tag);
         for (var i in attrs) {
             if (attrs.hasOwnProperty(i)) {
                 elm.setAttribute(i, attrs[i]);
@@ -600,10 +704,10 @@
         return o;
     }
 
-    function _bind(f, object) {
+    function _bind(f, object, args) {
         var __method = f;
-        return function (event) {
-            __method.call(object, event || window.event);
+        return function () {
+            __method.apply(object, args || arguments);
         };
     }
 

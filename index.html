@@ -9,15 +9,8 @@
     <a href="https://github.com/mrmarktyy/mPainter"><img id="fork-me" alt="Fork me on GitHub" src="img/forkme.png" /></a>
     <div class="container">
         <h1>mPainter Demo</h1>
-        <div class="button-group">
-            <span style="float:right;">v0.3.1</span>
-            <button id="canvas-undo">Undo</button>
-            <button id="canvas-redo">Redo</button>
-            <!-- <button id="canvas-save">Save as Image</button> -->
-            <button id="canvas-replay">Replay</button>
-            <button id="canvas-clear">Reset</button>
-        </div>
-        <svg id="painter-svg" width="980" height="500" xmlns="http://www.w3.org/2000/svg"> </svg>
+        <span style="float:right;">v0.4.0</span>
+        <div id="my-hook"></div>
         <div id="paint-config">
             <div id="tool-kit">
                 Pick Tool:
@@ -57,28 +50,10 @@
     <script src="src/mPainter.js"></script>
     <script>
         var config = {
-            id: "painter-svg",
-            element_prefix: "elm_"
+            width: 980,
+            height: 500
         };
-        var mPainter = new mPainter(config);
-        /**
-         * Button group
-         */
-        $(document).on('click', '#canvas-clear', function() {
-            mPainter.reset();
-        });
-        $(document).on('click', '#canvas-undo', function() {
-            mPainter.undo();
-        });
-        $(document).on('click', '#canvas-save', function() {
-            mPainter.saveImage();
-        });
-        $(document).on('click', '#canvas-replay', function() {
-            mPainter.replay();
-        });
-        $(document).on('click', '#canvas-redo', function() {
-            mPainter.redo();
-        });
+        var mPainter = new mPainter('my-hook', config);
         /**
          * Color Selector
          */
@@ -111,15 +86,6 @@
             var width = $(this).find("div.paint-size").css("width")
                 radius = width.substring(0, width.length - 2) / 2;
             mPainter.setSize(radius);
-        });
-        /**
-         * Tool Kit
-         */
-        $(document).on('click', '#tool-kit ul li', function () {
-            $("#tool-kit ul li").removeClass("selected");
-            $(this).addClass("selected");
-
-            mPainter.setTool($(this).data("type"));
         });
 
         function rgb2hex(rgb){
