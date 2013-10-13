@@ -8,32 +8,25 @@ Please see [Demo page]
 
 ### Getting Started
 
-1.  Embedding the script before the closing body tag in your HTML
+1.      Embedding the script before the closing body tag in your HTML
 
-
-```javascript
+```
 <script src="app/src/mPainter.js"></script>
 ```
 
+2.      Put a DOM element where you want to the painting board to be
 
-2.  Put a DOM element where you want to the painting board to be
-
-
-```html
+```
 <div id="painting-board"></div>
 ```
 
+3.      Initialize the painting board with a simple line code. And that's it, start painting !
 
-3.  Initialize the painting board with a simple line code. And that's it, start painting !
-
-
-```javascript
+```
 var mPainter = new mPainter('painting-board');
 ```
 
-
-4.  More configuration options are available, please see documentation for details.
-
+4.      More configuration options are available, please see documentation for details.
 
 ### Browser Support
 
@@ -65,8 +58,7 @@ It is currently tested and working on:
 
 ### Road Map
 
-* support save of painting
-* support direct upload painting to AWS S3
+* support save painting and direct upload it to S3
 * support various shapes (line, square, eclipse, etc)
 * support layer based functions including resize, flip, rotate, etc
 * and more...
