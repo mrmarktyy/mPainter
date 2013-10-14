@@ -11,8 +11,8 @@
      */
     mPainter = function (hook, options) {
         var defaults = {
-                id: "paint-board",
-                cursor_id: "cursor",
+                id: "m-board",
+                cursor_id: "m-cursor",
                 element_prefix: "element_",
                 tool: "PAINT",
 
@@ -26,30 +26,39 @@
 
                 debug: false,
 
-                ICONS: {
+                UI: {
+                    widget_group_classname: 'm-button-groups'
+                },
+                WIDGETS: {
+                    COLOR: {
+                        hex: ['#FF0000', '#0063DC', '#66CEFF', '#73BA37', '#FFCC33', '#E47911', '#FF0084', '#6441A5',
+                        '#C7C5E6', '#171515']
+                    },
+                    PAINT_TYPE: {
+                        PAINT: {
+                            text: 'Paint',
+                            icon: '\u2710'
+                        },
+                        LINE: {
+                            text: 'Line',
+                            icon: '\u2711'
+                        }
+                    },
                     UNDO: {
                         text: 'Undo',
-                        code: '\u21B6'
+                        icon: '\u21B6'
                     },
                     REDO: {
                         text: 'Redo',
-                        code: '\u21B7'
+                        icon: '\u21B7'
                     },
                     REPLAY: {
                         text: 'Replay',
-                        code: '\u27F3'
+                        icon: '\u27F3'
                     },
                     RESET: {
                         text: 'Reset',
-                        code: '\u2672',
-                    },
-                    PAINT: {
-                        text: 'Paint',
-                        code: '\u2710'
-                    },
-                    LINE: {
-                        text: 'Line',
-                        code: '\u2711'
+                        icon: '\u2672',
                     }
                 }
             };
@@ -268,6 +277,7 @@
         renderPaintBoard();
         renderWidgets();
     }
+
     function renderPaintBoard() {
         var hook = _get(_self.options.hook_id);
         if (!hook) {
@@ -280,27 +290,50 @@
         });
         hook.appendChild(_svg);
     }
+
     function renderWidgets() {
         var hook = _get(_self.options.hook_id),
-            buttons_group = document.createElement('div');
-        buttons_group.setAttribute('class', 'mpainter-buttons-group');
+            button_groups = document.createElement('div');
+        button_groups.setAttribute('class', _self.options.UI.widget_group_classname);
+
+        button_groups.appendChild(renderColors());
+        // for (var i = 0, n = _self.options.WIDGETS.length; i < n; i++) {
+        //     var ul = document.createElement('ul');
+        //     var group = _self.options.WIDGETS[i];
+        //     for (var icon_type in group) {
+        //         if (group.hasOwnProperty(icon_type)) {
+        //             var icon_config = group[icon_type],
+        //                 li = document.createElement('li');
+        //             if (icon_config.icon) {
+        //                 var span = document.createElement('span');
+        //                 span.appendChild(document.createTextNode(icon_config.icon));
+        //                 li.appendChild(span);
+        //             }
+        //             li.appendChild(document.createTextNode(icon_config.text));
+        //             bindClick(li, icon_type);
+        //             ul.appendChild(li);
+        //         }
+        //     }
+        //     button_groups.appendChild(ul);
+        // }
+        hook.insertBefore(button_groups, hook.childNodes[0]);
+    }
+
+    function renderColors() {
+        var div = document.createElement('div');
+        div.setAttribute('class', 'm-color-selector');
 
         var ul = document.createElement('ul');
-        for (var icon_type  in _self.options.ICONS) {
-            if (_self.options.ICONS.hasOwnProperty(icon_type)) {
-                var icon_config = _self.options.ICONS[icon_type],
-                    li = document.createElement('li'),
-                    span = document.createElement('span');
-                span.appendChild(document.createTextNode(icon_config.code));
-                li.appendChild(span);
-                li.appendChild(document.createTextNode(icon_config.text));
-                li.setAttribute('id', 'icon-' + icon_type.toLowerCase());
-                bindClick(li, icon_type);
-                ul.appendChild(li);
-            }
+        ul.setAttribute('class', 'm-color-selector');
+        for (var i = 0, n = _self.options.WIDGETS.COLOR.hex.length; i < n; i++) {
+            var li = document.createElement('li'),
+                hex = _self.options.WIDGETS.COLOR.hex[i];
+            li.setAttribute('style', 'background-color:' + hex);
+            li.addEventListener('click', _bind(_self.setColor, _self, hex), false);
+            ul.appendChild(li);
         }
-        buttons_group.appendChild(ul);
-        hook.insertBefore(buttons_group, hook.childNodes[0]);
+        ul.childNodes[0].setAttribute('class', 'active');
+        return ul;
     }
     // TODO REFACTOR:
     function bindEvents() {

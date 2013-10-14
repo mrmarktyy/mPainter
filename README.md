@@ -54,7 +54,7 @@ It is currently tested and working on:
 * strip off jQuery dependency ✓
 * undo/redo support ✓
 * tablets/mobile devices and win8 point screen support ✓
-* replay support ✓
+* cool replay support ✓
 
 ### Road Map
 

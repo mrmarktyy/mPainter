@@ -11,7 +11,7 @@ body,p,ul,li,ol {
     width:980px;
     margin:0 auto;
 }
-#paint-board {
+#m-board {
     border:1px dashed #A6A6A6;cursor:none;
 }
 
@@ -36,18 +36,8 @@ body,p,ul,li,ol {
 	border: 1px solid #FFFFFF;
 }
 #size-selector ul li.selected, #size-selector ul li:hover,
-#tool-kit ul li.selected, #tool-kit ul li:hover
 {
 	border: 1px solid #999999;
-}
-#tool-kit ul li {
-	padding:10px;
-	margin:5px 10px 0 0;
-	display:inline-block;
-	border: 1px solid #FFFFFF;
-}
-#tool-kit ul li img {
-	margin:0 auto;
 }
 .paint-size {
 	border-radius: 50%;
@@ -69,11 +59,11 @@ body,p,ul,li,ol {
 /**
  * Widgets UI
  */
-.mpainter-buttons-group ul {
+/*.m-button-groups ul {
     list-style:none;
     font-size: 12px;
 }
-.mpainter-buttons-group ul li {
+.m-button-groups ul li {
     display: inline-block;
     padding: 4px;
     margin: 0 5px 5px 0;
@@ -85,9 +75,19 @@ body,p,ul,li,ol {
     vertical-align: middle;
     cursor: pointer;
 }
-.mpainter-buttons-group ul li:hover {
+.m-button-groups ul li:hover {
     background: #F6F6F6;
 }
-.mpainter-buttons-group ul li span {
+.m-button-groups ul li span {
     padding: 0 3px;
+}*/
+
+ul.m-color-selector {
+    list-style: none;
+}
+ul.m-color-selector li {
+    display: none;
+}
+ul.m-color-selector li.active {
+    display: block;
 }
