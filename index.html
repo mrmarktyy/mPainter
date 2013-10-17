@@ -12,22 +12,6 @@
         <span style="float:right;">v0.4.0</span>
         <div id="my-hook"></div>
         <div id="paint-config">
-            <div id="color-selector">
-                <span>Pick Color: <div id="paint-color" style="background-color:#FF0000;"> </div><input id="custom-color" type="text" placeholder="#0000FF" style="width:60px"/></span>
-                <ul>
-                    <li style="background-color:#FF0000"></li>
-                    <li style="background-color:#0063DC"></li>
-                    <li style="background-color:#66CEFF"></li>
-                    <li style="background-color:#73BA37"></li>
-                    <li style="background-color:#FFCC33"></li>
-                    <li style="background-color:#E47911"></li>
-                    <li style="background-color:#FF0084"></li>
-                    <li style="background-color:#6441A5"></li>
-                    <li style="background-color:#C7C5E6"></li>
-                    <li style="background-color:#171515"></li>
-                </ul>
-            </div>
-            <hr />
             <div id="size-selector">
                 <span>Size: </span>
                 <ul>
@@ -46,28 +30,6 @@
             height: 500
         };
         var mPainter = new mPainter('my-hook', config);
-        /**
-         * Color Selector
-         */
-        $(document).on("click touchstart", "#color-selector ul li", function() {
-            var hex = $(this).css("background-color");
-            $("#paint-color, .paint-size").css("background-color", hex);
-            $("#custom-color").val(rgb2hex(hex).toUpperCase());
-
-            mPainter.setColor(hex);
-        });
-        /**
-         * Custom Color
-         */
-        $("#custom-color").keyup(function() {
-            var hex = $(this).val();
-            // valid hex
-            if (/^#([A-Fa-f0-9]{3}$)|([A-Fa-f0-9]{6}$)/.test(hex)) {
-                $("#paint-color, .paint-size").css('background-color', hex);
-
-                mPainter.setColor(hex);
-            }
-        })
         /**
          * Size Selector
          */

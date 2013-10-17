@@ -320,20 +320,50 @@
     }
 
     function renderColors() {
-        var div = document.createElement('div');
-        div.setAttribute('class', 'm-color-selector');
+        var wrapper = document.createElement('div');
+        wrapper.setAttribute('class', 'm-color-selector');
 
+        var div_icon = document.createElement('div');
         var ul = document.createElement('ul');
-        ul.setAttribute('class', 'm-color-selector');
+        div_icon.setAttribute('class', 'm-color-icon');
+        div_icon.addEventListener('mouseover', function (e) {
+            ul.setAttribute('style', 'display:block;');
+            function mouseout(e) {
+                var toElement = e.toElement ? e.toElement : e.relatedTarget;
+                if (toElement !== div_icon && toElement !== ul && toElement !== div_inner) {
+                    ul.removeAttribute('style');
+                } else {
+                    ul.addEventListener('mouseout', function (e) {
+                        console.log(e);
+                        ul.removeAttribute('style');
+                    });
+                }
+                div_icon.removeEventListener('mouseout', mouseout, false);
+            }
+            div_icon.addEventListener('mouseout', mouseout, false);
+        }, false);
+
+        var div_inner = document.createElement('div');
+        div_inner.setAttribute('style', 'background-color:' + _self.options.WIDGETS.COLOR.hex[0]);
+        div_icon.appendChild(div_inner);
+
         for (var i = 0, n = _self.options.WIDGETS.COLOR.hex.length; i < n; i++) {
             var li = document.createElement('li'),
+                div_color = document.createElement('div'),
                 hex = _self.options.WIDGETS.COLOR.hex[i];
-            li.setAttribute('style', 'background-color:' + hex);
-            li.addEventListener('click', _bind(_self.setColor, _self, hex), false);
+            div_color.setAttribute('class', 'm-color');
+            div_color.setAttribute('style', 'background-color:' + hex);
+            li.appendChild(div_color);
+            li.addEventListener('click', function () {
+                _self.setColor(hex);
+                div_inner.setAttribute('style', 'background-color:' + hex);
+            }, false);
             ul.appendChild(li);
         }
-        ul.childNodes[0].setAttribute('class', 'active');
-        return ul;
+
+        wrapper.appendChild(div_icon);
+        wrapper.appendChild(ul);
+        return wrapper;
     }
     // TODO REFACTOR:
     function bindEvents() {
@@ -737,10 +767,10 @@
         return o;
     }
 
-    function _bind(f, object, args) {
+    function _bind(f, context, args) {
         var __method = f;
         return function () {
-            __method.apply(object, args || arguments);
+            __method.apply(context, args || arguments);
         };
     }
 
