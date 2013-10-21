@@ -34,6 +34,9 @@
                         hex: ['#FF0000', '#0063DC', '#66CEFF', '#73BA37', '#FFCC33', '#E47911', '#FF0084', '#6441A5',
                         '#C7C5E6', '#171515']
                     },
+                    TOOLS: [
+                        "PAINT", "LINE"
+                    ],
                     PAINT_TYPE: {
                         PAINT: {
                             text: 'Paint',
@@ -178,7 +181,6 @@
                         last_timestamp = points[points.length - 1].timestamp;
                     if (elements[element_end].is_deleted === true) {
                         deleted_time += last_timestamp - first_timestamp;
-                        console.log(deleted_time);
                         continue;
                     }
                     if (last_timestamp > before_time) {
@@ -296,7 +298,13 @@
             button_groups = document.createElement('div');
         button_groups.setAttribute('class', _self.options.UI.widget_group_classname);
 
-        button_groups.appendChild(renderColors());
+        var rendered_colors = renderColors();
+        button_groups.appendChild(rendered_colors.color_selected);
+        button_groups.appendChild(rendered_colors.color_list);
+        var rendered_tools = renderTools();
+        button_groups.appendChild(rendered_tools.tool_selected);
+        button_groups.appendChild(rendered_tools.tool_list);
+
         // for (var i = 0, n = _self.options.WIDGETS.length; i < n; i++) {
         //     var ul = document.createElement('ul');
         //     var group = _self.options.WIDGETS[i];
@@ -316,6 +324,7 @@
         //     }
         //     button_groups.appendChild(ul);
         // }
+
         hook.insertBefore(button_groups, hook.childNodes[0]);
     }
 
@@ -323,29 +332,22 @@
         var wrapper = document.createElement('div');
         wrapper.setAttribute('class', 'm-color-selector');
 
-        var div_icon = document.createElement('div');
-        var ul = document.createElement('ul');
-        div_icon.setAttribute('class', 'm-color-icon');
-        div_icon.addEventListener('mouseover', function (e) {
-            ul.setAttribute('style', 'display:block;');
-            function mouseout(e) {
-                var toElement = e.toElement ? e.toElement : e.relatedTarget;
-                if (toElement !== div_icon && toElement !== ul && toElement !== div_inner) {
-                    ul.removeAttribute('style');
-                } else {
-                    ul.addEventListener('mouseout', function (e) {
-                        console.log(e);
-                        ul.removeAttribute('style');
-                    });
-                }
-                div_icon.removeEventListener('mouseout', mouseout, false);
+        var ul_color_list = document.createElement('ul');
+        ul_color_list.setAttribute('class', 'm-color-list');
+
+        wrapper.addEventListener('mouseover', function (e) {
+            ul_color_list.setAttribute('style', 'display:block;');
+        }, false);
+        wrapper.addEventListener('mouseout', function (e) {
+            var toElement = e.toElement || e.relatedTarget;
+            if (toElement !== wrapper && toElement !== ul_color_list) {
+                ul_color_list.setAttribute('style', 'display:none;');
             }
-            div_icon.addEventListener('mouseout', mouseout, false);
         }, false);
 
-        var div_inner = document.createElement('div');
-        div_inner.setAttribute('style', 'background-color:' + _self.options.WIDGETS.COLOR.hex[0]);
-        div_icon.appendChild(div_inner);
+        var div_color_selected = document.createElement('div');
+        div_color_selected.setAttribute('style', 'background-color:' + _self.options.WIDGETS.COLOR.hex[0]);
+        wrapper.appendChild(div_color_selected);
 
         for (var i = 0, n = _self.options.WIDGETS.COLOR.hex.length; i < n; i++) {
             var li = document.createElement('li'),
@@ -354,16 +356,78 @@
             div_color.setAttribute('class', 'm-color');
             div_color.setAttribute('style', 'background-color:' + hex);
             li.appendChild(div_color);
-            li.addEventListener('click', function () {
-                _self.setColor(hex);
-                div_inner.setAttribute('style', 'background-color:' + hex);
-            }, false);
-            ul.appendChild(li);
+            ul_color_list.appendChild(li);
         }
+        ul_color_list.addEventListener('click', function (e) {
+            if (e.target.className.indexOf('m-color') !== -1) {
+                var hex = e.target.style['background-color'];
+                _self.setColor(hex);
+                div_color_selected.setAttribute('style', 'background-color:' + hex);
+            }
+        }, false);
+        ul_color_list.addEventListener('mouseout', function (e) {
+            var toElement = e.toElement || e.relatedTarget,
+                fromElement = e.fromElement || e.relatedTarget;
+            if ((fromElement === ul_color_list || isDescendant(ul_color_list, fromElement)) &&
+               (toElement === ul_color_list || isDescendant(ul_color_list, toElement))) {
+                return;
+            }
+            ul_color_list.setAttribute('style', 'display:none;');
+        });
 
-        wrapper.appendChild(div_icon);
-        wrapper.appendChild(ul);
-        return wrapper;
+        return {color_selected: wrapper, color_list: ul_color_list};
+    }
+    function renderTools() {
+        var wrapper = document.createElement('div');
+        wrapper.setAttribute('class', 'm-tool-selector');
+
+        var ul_tool_list = document.createElement('ul');
+        ul_tool_list.setAttribute('class', 'm-tool-list');
+
+        wrapper.addEventListener('mouseover', function (e) {
+            ul_tool_list.setAttribute('style', 'display:block;');
+        }, false);
+        wrapper.addEventListener('mouseout', function (e) {
+            var toElement = e.toElement || e.relatedTarget;
+            if (toElement !== wrapper && toElement !== ul_tool_list) {
+                ul_tool_list.setAttribute('style', 'display:none;');
+            }
+        }, false);
+
+        var div_tool_selected = document.createElement('div');
+        div_tool_selected.setAttribute('class', 'm-tool-icon');
+        div_tool_selected.appendChild(document.createTextNode(_self.options.WIDGETS.PAINT_TYPE.PAINT.icon));
+        wrapper.appendChild(div_tool_selected);
+
+        for (var i = 0, n = _self.options.WIDGETS.TOOLS.length; i < n; i++) {
+            var tool = _self.options.WIDGETS.TOOLS[i],
+                li = document.createElement('li'),
+                div_tool = document.createElement('div'),
+                icon = _self.options.WIDGETS.PAINT_TYPE[tool].icon;
+            div_tool.setAttribute('class', 'm-tool');
+            div_tool.setAttribute('data-tool', tool);
+            div_tool.appendChild(document.createTextNode(icon));
+            li.appendChild(div_tool);
+            ul_tool_list.appendChild(li);
+        }
+        ul_tool_list.addEventListener('click', function (e) {
+            if (e.target.className.indexOf('m-tool') !== -1) {
+                var tool = e.target.getAttribute('data-tool');
+                _self.setTool(tool);
+                // div_color_selected.get('style', 'background-color:' + hex);
+            }
+        }, false);
+        ul_tool_list.addEventListener('mouseout', function (e) {
+            var toElement = e.toElement || e.relatedTarget,
+                fromElement = e.fromElement || e.relatedTarget;
+            if ((fromElement === ul_tool_list || isDescendant(ul_tool_list, fromElement)) &&
+               (toElement === ul_tool_list || isDescendant(ul_tool_list, toElement))) {
+                return;
+            }
+            ul_tool_list.setAttribute('style', 'display:none;');
+        });
+
+        return {tool_selected: wrapper, tool_list: ul_tool_list};
     }
     // TODO REFACTOR:
     function bindEvents() {
@@ -751,6 +815,17 @@
 
     function isFunction(fn) {
         return typeof fn === 'function';
+    }
+
+    function isDescendant(parent, child) {
+        var node = child.parentNode;
+        while (node != null) {
+            if (node == parent) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
     }
     /**
      * Shim methods

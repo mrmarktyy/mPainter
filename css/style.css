@@ -67,37 +67,54 @@ body,p,ul,li,ol {
 }*/
 .m-button-groups {
     margin-bottom: 5px;
+    position: relative;
 }
 .m-color-selector {
     position: relative;
-}
-.m-color-icon {
+    display: inline-block;
     width: 25px;
     height: 15px;
     padding: 3px;
     border: 1px solid #DDDDDD;
-    display: inline-block;
     cursor: pointer;
+    margin-right: 10px;
 }
-.m-color-icon div {
+.m-tool-selector {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 15px;
+    padding: 3px;
+    border: 1px solid #DDDDDD;
+    cursor: pointer;
+    margin-right: 10px;
+    bottom: 5px;
+}
+.m-tool-icon {
+    padding-left: 5px;
+}
+.m-color-selector:hover, .m-tool-selector:hover {
+    background-color: #E6E6E6;
+}
+.m-color-selector div {
     height: 100%;
 }
-.m-color {
+.m-color, .m-tool {
     width: 25px;
     height: 15px;
     margin: 3px;
 }
-.m-color-selector ul {
+ul.m-color-list, ul.m-tool-list {
     display: none;
     list-style: none;
     position: absolute;
     top: -22px;
 }
-.m-color-selector ul li {
+ul.m-color-list li, ul.m-tool-list li {
     display: inline-block;
     cursor: pointer;
 }
-.m-color-selector ul li:hover {
-    background-color: #F6F6F6;
+ul.m-color-list li:hover, ul.m-tool-list li:hover {
+    background-color: #E6E6E6;
 }
 
