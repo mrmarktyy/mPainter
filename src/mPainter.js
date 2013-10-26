@@ -340,7 +340,7 @@
         }, false);
         wrapper.addEventListener('mouseout', function (e) {
             var toElement = e.toElement || e.relatedTarget;
-            if (toElement !== wrapper && toElement !== ul_color_list) {
+            if (toElement !== wrapper && !isDescendant(ul_color_list, toElement)) {
                 ul_color_list.setAttribute('style', 'display:none;');
             }
         }, false);
@@ -389,14 +389,14 @@
         }, false);
         wrapper.addEventListener('mouseout', function (e) {
             var toElement = e.toElement || e.relatedTarget;
-            if (toElement !== wrapper && toElement !== ul_tool_list) {
+            if (toElement !== wrapper && !isDescendant(ul_tool_list, toElement)) {
                 ul_tool_list.setAttribute('style', 'display:none;');
             }
         }, false);
 
         var div_tool_selected = document.createElement('div');
         div_tool_selected.setAttribute('class', 'm-tool-icon');
-        div_tool_selected.appendChild(document.createTextNode(_self.options.WIDGETS.PAINT_TYPE.PAINT.icon));
+        div_tool_selected.innerText = _self.options.WIDGETS.PAINT_TYPE.PAINT.icon;
         wrapper.appendChild(div_tool_selected);
 
         for (var i = 0, n = _self.options.WIDGETS.TOOLS.length; i < n; i++) {
@@ -412,9 +412,10 @@
         }
         ul_tool_list.addEventListener('click', function (e) {
             if (e.target.className.indexOf('m-tool') !== -1) {
-                var tool = e.target.getAttribute('data-tool');
+                var tool = e.target.getAttribute('data-tool'),
+                    icon = e.target.innerText;
                 _self.setTool(tool);
-                // div_color_selected.get('style', 'background-color:' + hex);
+                div_tool_selected.innerText = icon;
             }
         }, false);
         ul_tool_list.addEventListener('mouseout', function (e) {

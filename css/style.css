@@ -77,7 +77,7 @@ body,p,ul,li,ol {
     padding: 3px;
     border: 1px solid #DDDDDD;
     cursor: pointer;
-    margin-right: 10px;
+    margin-right: 5px;
 }
 .m-tool-selector {
     position: relative;
@@ -87,7 +87,7 @@ body,p,ul,li,ol {
     padding: 3px;
     border: 1px solid #DDDDDD;
     cursor: pointer;
-    margin-right: 10px;
+    margin-right: 5px;
     bottom: 5px;
 }
 .m-tool-icon {
@@ -99,16 +99,25 @@ body,p,ul,li,ol {
 .m-color-selector div {
     height: 100%;
 }
-.m-color, .m-tool {
+.m-color {
     width: 25px;
     height: 15px;
     margin: 3px;
+}
+.m-tool {
+    width: 22px;
+    height: 17px;
+    margin: 3px;
+    padding-left: 5px;
 }
 ul.m-color-list, ul.m-tool-list {
     display: none;
     list-style: none;
     position: absolute;
     top: -22px;
+}
+ul.m-tool-list {
+    left: 38px;
 }
 ul.m-color-list li, ul.m-tool-list li {
     display: inline-block;
