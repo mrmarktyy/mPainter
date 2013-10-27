@@ -27,7 +27,7 @@ body,p,ul,li,ol {
     margin-bottom: 5px;
     position: relative;
 }
-.m-color-selector, .m-tool-selector, .m-size-selector {
+.m-color-selector, .m-tool-selector, .m-size-selector, .m-button {
     position: relative;
     display: inline-block;
     width: 25px;
@@ -52,7 +52,7 @@ body,p,ul,li,ol {
     display: table-cell;
     vertical-align: middle;
 }
-.m-color-selector:hover, .m-tool-selector:hover, .m-size-selector:hover {
+.m-color-selector:hover, .m-tool-selector:hover, .m-size-selector:hover, .m-button:hover {
     background-color: #E6E6E6;
 }
 .m-color {
@@ -97,4 +97,20 @@ ul.m-size-list li {
 ul.m-color-list li:hover, ul.m-tool-list li:hover, ul.m-size-list li:hover {
     background-color: #E6E6E6;
 }
-
+.m-button span {
+    position: relative;
+}
+.m-button .m-undo {
+    left: 3px;
+}
+.m-button .m-redo {
+    left: 5px;
+}
+.m-button .m-replay {
+    bottom: 4px;
+    left: 4px;
+}
+.m-button .m-reset {
+    bottom: 2px;
+    left: 4px;
+}

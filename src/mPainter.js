@@ -49,21 +49,23 @@
                     SIZE: [
                         6, 10, 14
                     ],
-                    UNDO: {
-                        text: 'Undo',
-                        icon: '\u21B6'
-                    },
-                    REDO: {
-                        text: 'Redo',
-                        icon: '\u21B7'
-                    },
-                    REPLAY: {
-                        text: 'Replay',
-                        icon: '\u27F3'
-                    },
-                    RESET: {
-                        text: 'Reset',
-                        icon: '\u2672',
+                    GENERAL: {
+                        UNDO: {
+                            METHOD: 'undo',
+                            ICON: '\u21B6'
+                        },
+                        REDO: {
+                            METHOD: 'redo',
+                            ICON: '\u21B7'
+                        },
+                        REPLAY: {
+                            METHOD: 'replay',
+                            ICON: '\u27F3'
+                        },
+                        RESET: {
+                            METHOD: 'reset',
+                            ICON: '\u2672'
+                        }
                     }
                 }
             };
@@ -92,20 +94,6 @@
                 opacity: 1,
                 color: "#FF0000"  // red
             },
-
-            // EVENTS: {
-            //     "mousedown": _mouseDown,
-            //     "mousemove": _mouseMove,
-            //     "mouseup": _mouseUp,
-            //     "mouseover": _mouseOver,
-            //     "mouseout": _mouseOut
-            // },
-            // TOOLS: this.options.WIDGETS.TOOL
-            // TOOLS: {
-            //     PAINT: "PAINT",
-            //     LINE: "LINE"
-            // }
-
         };
 
         bindEvents();
@@ -266,7 +254,6 @@
                 head: 0,
                 elements: []
             };
-
             clearPaint();
         }
 
@@ -309,29 +296,14 @@
         button_groups.appendChild(rendered_sizes[0]);
         button_groups.appendChild(rendered_sizes[1]);
 
+        var rendered_general = renderGeneral();
+        rendered_general.forEach(function (div) {
+            button_groups.appendChild(div);
+        });
+
         var div_clear = document.createElement('div');
         div_clear.style['clear'] = 'both';
         button_groups.appendChild(div_clear);
-
-        // for (var i = 0, n = _self.options.WIDGETS.length; i < n; i++) {
-        //     var ul = document.createElement('ul');
-        //     var group = _self.options.WIDGETS[i];
-        //     for (var icon_type in group) {
-        //         if (group.hasOwnProperty(icon_type)) {
-        //             var icon_config = group[icon_type],
-        //                 li = document.createElement('li');
-        //             if (icon_config.icon) {
-        //                 var span = document.createElement('span');
-        //                 span.appendChild(document.createTextNode(icon_config.icon));
-        //                 li.appendChild(span);
-        //             }
-        //             li.appendChild(document.createTextNode(icon_config.text));
-        //             bindClick(li, icon_type);
-        //             ul.appendChild(li);
-        //         }
-        //     }
-        //     button_groups.appendChild(ul);
-        // }
 
         hook.insertBefore(button_groups, hook.childNodes[0]);
     }
@@ -449,11 +421,10 @@
 
         var div_inner = document.createElement('div');
         div_inner.setAttribute('class', 'm-size');
-        div_selected.appendChild(div_inner);
-
         div_inner.style['width'] = _self.options.WIDGETS.SIZE[0] + 'px';
         div_inner.style['height'] = _self.options.WIDGETS.SIZE[0] + 'px';
         div_inner.style['background-color'] = _self.options.WIDGETS.COLOR.HEX[0];
+        div_selected.appendChild(div_inner);
         _self.options.WIDGETS.COLOR.ELEMENTS.push(div_inner);
 
         li_divs.forEach(function (div, i) {
@@ -466,7 +437,32 @@
 
         return [wrapper, ul_list];
     }
-    // TODO REFACTOR:
+
+    function renderGeneral() {
+        var general_buttons = [];
+        for (var type in _self.options.WIDGETS.GENERAL) {
+            if (_self.options.WIDGETS.GENERAL.hasOwnProperty(type)) {
+
+                var button_config = _self.options.WIDGETS.GENERAL[type],
+                    div = document.createElement('div'),
+                    span = document.createElement('span');
+                span.innerText = button_config.ICON;
+                span.setAttribute('class', 'm-' + button_config.METHOD);
+                div.appendChild(span);
+                div.setAttribute('class', 'm-button');
+                div.addEventListener('click', (function (button_config) {
+                    return function () {
+                        if (isFunction(_self[button_config.METHOD])) {
+                            _self[button_config.METHOD].call(_self);
+                        }
+                    };
+                })(button_config), false);
+                general_buttons.push(div);
+            }
+        }
+        return general_buttons;
+    }
+    // TODO: REFACTOR
     function bindEvents() {
         _self.options.start_trigger.forEach(function (eventType) {
             _internal.el.addEventListener(eventType, paintStart, false);
@@ -480,40 +476,6 @@
         _internal.el.addEventListener("mouseover", mouseOver, false);
         _internal.el.addEventListener("mouseout", mouseOut, false);
     }
-
-    function bindClick(el, type) {
-        var _method, _args;
-        switch (type) {
-        case 'UNDO':
-            _method = 'undo';
-            break;
-        case 'REDO':
-            _method = 'redo';
-            break;
-        case 'REPLAY':
-            _method = 'replay';
-            break;
-        case 'RESET':
-            _method = 'reset';
-            break;
-        case 'PAINT':
-            _method = 'setTool';
-            _args = [type];
-            break;
-        case 'LINE':
-            _method = 'setTool';
-            _args = [type];
-            break;
-        }
-        if (typeof _self[_method] === 'function') {
-            el.addEventListener('click', _bind(_self[_method], _self, _args), false);
-        }
-    }
-    // function _eventHandler(e) {
-    //     if (_internal.EVENTS[e.type] && typeof _internal.EVENTS[e.type] === "function") {
-    //         _internal.EVENTS[e.type].call(_self, e);
-    //     }
-    // }
     /**
      * Events handlers
      */
@@ -526,10 +488,6 @@
         if (_internal.paint_start === undefined) {
             _internal.paint_start = time();
         }
-        // if (_internal.first_draw === true) {
-        //     _internal.first_draw = false;
-        //     _internal.paint_start = time();
-        // }
 
         var point = getPointFromEvent(e);
         log("Start: " + point.x + "," + point.y);
