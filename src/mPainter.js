@@ -14,7 +14,11 @@
                 id: "m-board",
                 cursor_id: "m-cursor",
                 element_prefix: "element_",
-                tool: "PAINT",
+                ui: {
+                    widget: {
+                        enable: true
+                    }
+                },
 
                 width: 600,
                 height: 400,
@@ -25,7 +29,8 @@
                 stop_trigger  : ['mouseup', 'touchend', 'touchcancel', 'MSPointerUp'],
 
                 debug: false,
-
+            },
+            config = {
                 UI: {
                     widget_group_classname: 'm-button-groups'
                 },
@@ -47,7 +52,7 @@
                         }
                     },
                     SIZE: [
-                        6, 10, 14
+                        4, 8, 12
                     ],
                     GENERAL: {
                         UNDO: {
@@ -70,10 +75,10 @@
                 }
             };
 
-        this.options = _extend(defaults, options);
+        this.options = _extend(defaults, options, config);
         _self = this;
 
-        renderUI();
+        renderUI(this.options.ui);
 
         _internal = {
             el: _get(this.options.id),
@@ -83,14 +88,13 @@
             is_mousedown: false,
             paint_start: undefined,
             paint_stack: {
-                head: 0,
                 elements: []
             },
 
             config: {
                 element_index: 0,
-                tool: this.options.tool,
-                painter_radius: 3,
+                tool: 'PAINT',
+                painter_radius: 2,
                 opacity: 1,
                 color: "#FF0000"  // red
             },
@@ -251,7 +255,6 @@
             _internal.is_mousedown = false;
             _internal.paint_start = undefined;
             _internal.paint_stack = {
-                head: 0,
                 elements: []
             };
             clearPaint();
@@ -261,9 +264,11 @@
     /**
      * Render paint board and required buttons
      */
-    function renderUI() {
+    function renderUI(ui) {
         renderPaintBoard();
-        renderWidgets();
+        if (ui.widget.enable === true) {
+            renderWidgets(ui.widget);
+        }
     }
 
     function renderPaintBoard() {
@@ -279,7 +284,7 @@
         hook.appendChild(_svg);
     }
 
-    function renderWidgets() {
+    function renderWidgets(widget_config) {
         var hook = _get(_self.options.hook_id),
             button_groups = document.createElement('div');
         button_groups.setAttribute('class', _self.options.UI.widget_group_classname);
@@ -442,7 +447,6 @@
         var general_buttons = [];
         for (var type in _self.options.WIDGETS.GENERAL) {
             if (_self.options.WIDGETS.GENERAL.hasOwnProperty(type)) {
-
                 var button_config = _self.options.WIDGETS.GENERAL[type],
                     div = document.createElement('div'),
                     span = document.createElement('span');
@@ -450,6 +454,7 @@
                 span.setAttribute('class', 'm-' + button_config.METHOD);
                 div.appendChild(span);
                 div.setAttribute('class', 'm-button');
+                div.setAttribute('title', button_config.METHOD);
                 div.addEventListener('click', (function (button_config) {
                     return function () {
                         if (isFunction(_self[button_config.METHOD])) {
@@ -583,7 +588,6 @@
         _internal.undo.push({id: _internal.config.element_index, value: "d"});
         _internal.redo = [];
         _internal.config.element_index ++;
-        // _internal.paint_stack.head = _internal.config.element_index ++;
     }
 
     function removeElement(index) {
@@ -864,4 +868,3 @@
     window.mPainter = mPainter;
 
 })(window);
-
