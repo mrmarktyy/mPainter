@@ -48,13 +48,13 @@ It is currently tested and working on:
 
 - Android Devices
 
-
 ### We're improving everyday !
 
 * strip off jQuery dependency ✓
 * undo/redo support ✓
 * tablets/mobile devices and win8 point screen support ✓
 * cool replay support ✓
+* widget UI integration & enhancement ✓
 
 ### Road Map
 
