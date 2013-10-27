@@ -9,20 +9,9 @@
     <a href="https://github.com/mrmarktyy/mPainter"><img id="fork-me" alt="Fork me on GitHub" src="img/forkme.png" /></a>
     <div class="container">
         <h1>mPainter Demo</h1>
-        <span style="float:right;">v0.4.0</span>
+        <span style="float:right;">v0.4.2</span>
         <div id="my-hook"></div>
-        <div id="paint-config">
-            <div id="size-selector">
-                <span>Size: </span>
-                <ul>
-                    <li class="selected"><div class="paint-size" style="background-color:#FF0000;width:6px;height:6px;"></div></li>
-                    <li><div class="paint-size" style="background-color:#FF0000;width:10px;height:10px;"></div></li>
-                    <li><div class="paint-size" style="background-color:#FF0000;width:16px;height:16px;"></div></li>
-                </ul>
-            </div>
-        </div>
     </div>
-    <script src="vendor/jquery.js"></script>
     <script src="src/mPainter.js"></script>
     <script>
         var config = {
@@ -30,25 +19,6 @@
             height: 500
         };
         var mPainter = new mPainter('my-hook', config);
-        /**
-         * Size Selector
-         */
-        $(document).on('click touchstart', '#size-selector ul li', function () {
-            $("#size-selector ul li").removeClass("selected");
-            $(this).addClass("selected");
-
-            var width = $(this).find("div.paint-size").css("width")
-                radius = width.substring(0, width.length - 2) / 2;
-            mPainter.setSize(radius);
-        });
-
-        function rgb2hex(rgb){
-            rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-            return (rgb && rgb.length === 4) ? "#" +
-                ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-                ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
-                ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
-        }
     </script>
 </body>
 </html>

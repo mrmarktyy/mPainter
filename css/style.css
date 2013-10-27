@@ -15,61 +15,19 @@ body,p,ul,li,ol {
     border:1px dashed #A6A6A6;
     cursor:none;
 }
-#size-selector ul {
-	list-style:none;
-	display:table;
-}
-#size-selector ul li {
-	width:40px;
-	height:40px;
-	display:table-cell;
-	vertical-align:middle;
-	border: 1px solid #FFFFFF;
-}
-#size-selector ul li.selected, #size-selector ul li:hover,
-{
-	border: 1px solid #999999;
-}
-.paint-size {
-	border-radius: 50%;
-	margin:0 auto;
-}
 #fork-me {
 	position: absolute;
 	top:0;
 	right:0;
-	border:0;
 }
 /**
  * Widgets UI
  */
-/*.m-button-groups ul {
-    list-style:none;
-    font-size: 12px;
-}
-.m-button-groups ul li {
-    display: inline-block;
-    padding: 4px;
-    margin: 0 5px 5px 0;
-    border: 1px solid #DDD;
-    background: #FEFEFE;
-    min-height: 20px;
-    max-height: 20px;
-    line-height: 20px;
-    vertical-align: middle;
-    cursor: pointer;
-}
-.m-button-groups ul li:hover {
-    background: #F6F6F6;
-}
-.m-button-groups ul li span {
-    padding: 0 3px;
-}*/
 .m-button-groups {
     margin-bottom: 5px;
     position: relative;
 }
-.m-color-selector {
+.m-color-selector, .m-tool-selector, .m-size-selector {
     position: relative;
     display: inline-block;
     width: 25px;
@@ -78,26 +36,24 @@ body,p,ul,li,ol {
     border: 1px solid #DDDDDD;
     cursor: pointer;
     margin-right: 5px;
+    vertical-align: middle;
+    float: left;
 }
-.m-tool-selector {
-    position: relative;
-    display: inline-block;
-    width: 25px;
-    height: 15px;
-    padding: 3px;
-    border: 1px solid #DDDDDD;
-    cursor: pointer;
-    margin-right: 5px;
-    bottom: 5px;
-}
-.m-tool-icon {
-    padding-left: 5px;
-}
-.m-color-selector:hover, .m-tool-selector:hover {
-    background-color: #E6E6E6;
+.m-size-selector {
+    display: table;
 }
 .m-color-selector div {
     height: 100%;
+}
+.m-tool-selector div {
+    padding-left: 5px;
+}
+.m-size-selector > div {
+    display: table-cell;
+    vertical-align: middle;
+}
+.m-color-selector:hover, .m-tool-selector:hover, .m-size-selector:hover {
+    background-color: #E6E6E6;
 }
 .m-color {
     width: 25px;
@@ -110,7 +66,11 @@ body,p,ul,li,ol {
     margin: 3px;
     padding-left: 5px;
 }
-ul.m-color-list, ul.m-tool-list {
+.m-size {
+    border-radius: 50%;
+    margin: 0 auto;
+}
+ul.m-color-list, ul.m-tool-list, ul.m-size-list {
     display: none;
     list-style: none;
     position: absolute;
@@ -119,11 +79,22 @@ ul.m-color-list, ul.m-tool-list {
 ul.m-tool-list {
     left: 38px;
 }
+ul.m-size-list {
+    left: 76px;
+}
 ul.m-color-list li, ul.m-tool-list li {
     display: inline-block;
     cursor: pointer;
 }
-ul.m-color-list li:hover, ul.m-tool-list li:hover {
+ul.m-size-list li {
+    display: table-cell;
+    vertical-align: middle;
+    cursor: pointer;
+    width: 28px;
+    height: 22px;
+    padding: 0 3px 0 2px;
+}
+ul.m-color-list li:hover, ul.m-tool-list li:hover, ul.m-size-list li:hover {
     background-color: #E6E6E6;
 }
 

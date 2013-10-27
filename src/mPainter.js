@@ -31,11 +31,15 @@
                 },
                 WIDGETS: {
                     COLOR: {
-                        hex: ['#FF0000', '#0063DC', '#66CEFF', '#73BA37', '#FFCC33', '#E47911', '#FF0084', '#6441A5',
-                        '#C7C5E6', '#171515']
+                        HEX: ['#FF0000', '#0063DC', '#66CEFF', '#73BA37', '#FFCC33', '#E47911', '#FF0084', '#6441A5',
+                        '#C7C5E6', '#171515'],
+                        ELEMENTS: []
                     },
-                    TOOLS: [
+                    TOOL: [
                         "PAINT", "LINE"
+                    ],
+                    SIZE: [
+                        6, 10, 14
                     ],
                     PAINT_TYPE: {
                         PAINT: {
@@ -240,7 +244,6 @@
                 case "a":
                     _internal.paint_stack.elements[_index].is_deleted = false;
                     var config = _internal.paint_stack.elements[_index].config;
-                    // fix half opacity issue
                     config.opacity *= 2;
                     draw(config);
                     break;
@@ -299,11 +302,20 @@
         button_groups.setAttribute('class', _self.options.UI.widget_group_classname);
 
         var rendered_colors = renderColors();
-        button_groups.appendChild(rendered_colors.color_selected);
-        button_groups.appendChild(rendered_colors.color_list);
+        button_groups.appendChild(rendered_colors[0]);
+        button_groups.appendChild(rendered_colors[1]);
+
         var rendered_tools = renderTools();
-        button_groups.appendChild(rendered_tools.tool_selected);
-        button_groups.appendChild(rendered_tools.tool_list);
+        button_groups.appendChild(rendered_tools[0]);
+        button_groups.appendChild(rendered_tools[1]);
+
+        var rendered_sizes = renderSizes();
+        button_groups.appendChild(rendered_sizes[0]);
+        button_groups.appendChild(rendered_sizes[1]);
+
+        var div_clear = document.createElement('div');
+        div_clear.style['clear'] = 'both';
+        button_groups.appendChild(div_clear);
 
         // for (var i = 0, n = _self.options.WIDGETS.length; i < n; i++) {
         //     var ul = document.createElement('ul');
@@ -328,107 +340,134 @@
         hook.insertBefore(button_groups, hook.childNodes[0]);
     }
 
-    function renderColors() {
+    function renderHierarchy(name, li_length, click_handler) {
         var wrapper = document.createElement('div');
-        wrapper.setAttribute('class', 'm-color-selector');
+        wrapper.setAttribute('class', 'm-' + name + '-selector');
 
-        var ul_color_list = document.createElement('ul');
-        ul_color_list.setAttribute('class', 'm-color-list');
+        var ul_list = document.createElement('ul');
+        ul_list.setAttribute('class', 'm-' + name + '-list');
 
-        wrapper.addEventListener('mouseover', function (e) {
-            ul_color_list.setAttribute('style', 'display:block;');
-        }, false);
-        wrapper.addEventListener('mouseout', function (e) {
-            var toElement = e.toElement || e.relatedTarget;
-            if (toElement !== wrapper && !isDescendant(ul_color_list, toElement)) {
-                ul_color_list.setAttribute('style', 'display:none;');
-            }
-        }, false);
+        var div_selected = document.createElement('div');
+        wrapper.appendChild(div_selected);
 
-        var div_color_selected = document.createElement('div');
-        div_color_selected.setAttribute('style', 'background-color:' + _self.options.WIDGETS.COLOR.hex[0]);
-        wrapper.appendChild(div_color_selected);
-
-        for (var i = 0, n = _self.options.WIDGETS.COLOR.hex.length; i < n; i++) {
+        var li_divs = [];
+        for (var i = 0, n = li_length; i < n; i++) {
             var li = document.createElement('li'),
-                div_color = document.createElement('div'),
-                hex = _self.options.WIDGETS.COLOR.hex[i];
-            div_color.setAttribute('class', 'm-color');
-            div_color.setAttribute('style', 'background-color:' + hex);
-            li.appendChild(div_color);
-            ul_color_list.appendChild(li);
+                div_inner = document.createElement('div');
+            div_inner.setAttribute('class', 'm-' + name);
+            li.appendChild(div_inner);
+            ul_list.appendChild(li);
+            li_divs.push(div_inner);
         }
-        ul_color_list.addEventListener('click', function (e) {
-            if (e.target.className.indexOf('m-color') !== -1) {
-                var hex = e.target.style['background-color'];
-                _self.setColor(hex);
-                div_color_selected.setAttribute('style', 'background-color:' + hex);
-            }
-        }, false);
-        ul_color_list.addEventListener('mouseout', function (e) {
-            var toElement = e.toElement || e.relatedTarget,
-                fromElement = e.fromElement || e.relatedTarget;
-            if ((fromElement === ul_color_list || isDescendant(ul_color_list, fromElement)) &&
-               (toElement === ul_color_list || isDescendant(ul_color_list, toElement))) {
-                return;
-            }
-            ul_color_list.setAttribute('style', 'display:none;');
-        });
-
-        return {color_selected: wrapper, color_list: ul_color_list};
-    }
-    function renderTools() {
-        var wrapper = document.createElement('div');
-        wrapper.setAttribute('class', 'm-tool-selector');
-
-        var ul_tool_list = document.createElement('ul');
-        ul_tool_list.setAttribute('class', 'm-tool-list');
 
         wrapper.addEventListener('mouseover', function (e) {
-            ul_tool_list.setAttribute('style', 'display:block;');
+            ul_list.setAttribute('style', 'display:block;');
         }, false);
         wrapper.addEventListener('mouseout', function (e) {
             var toElement = e.toElement || e.relatedTarget;
-            if (toElement !== wrapper && !isDescendant(ul_tool_list, toElement)) {
-                ul_tool_list.setAttribute('style', 'display:none;');
+            if (!isDescendant(ul_list, toElement) && toElement !== ul_list) {
+                ul_list.setAttribute('style', 'display:none;');
             }
         }, false);
-
-        var div_tool_selected = document.createElement('div');
-        div_tool_selected.setAttribute('class', 'm-tool-icon');
-        div_tool_selected.innerText = _self.options.WIDGETS.PAINT_TYPE.PAINT.icon;
-        wrapper.appendChild(div_tool_selected);
-
-        for (var i = 0, n = _self.options.WIDGETS.TOOLS.length; i < n; i++) {
-            var tool = _self.options.WIDGETS.TOOLS[i],
-                li = document.createElement('li'),
-                div_tool = document.createElement('div'),
-                icon = _self.options.WIDGETS.PAINT_TYPE[tool].icon;
-            div_tool.setAttribute('class', 'm-tool');
-            div_tool.setAttribute('data-tool', tool);
-            div_tool.appendChild(document.createTextNode(icon));
-            li.appendChild(div_tool);
-            ul_tool_list.appendChild(li);
-        }
-        ul_tool_list.addEventListener('click', function (e) {
-            if (e.target.className.indexOf('m-tool') !== -1) {
-                var tool = e.target.getAttribute('data-tool'),
-                    icon = e.target.innerText;
-                _self.setTool(tool);
-                div_tool_selected.innerText = icon;
-            }
-        }, false);
-        ul_tool_list.addEventListener('mouseout', function (e) {
+        ul_list.addEventListener('mouseout', function (e) {
             var toElement = e.toElement || e.relatedTarget,
                 fromElement = e.fromElement || e.relatedTarget;
-            if ((fromElement === ul_tool_list || isDescendant(ul_tool_list, fromElement)) &&
-               (toElement === ul_tool_list || isDescendant(ul_tool_list, toElement))) {
+            if ((fromElement === ul_list || isDescendant(ul_list, fromElement)) &&
+               (toElement === ul_list || isDescendant(ul_list, toElement))) {
                 return;
             }
-            ul_tool_list.setAttribute('style', 'display:none;');
+            ul_list.setAttribute('style', 'display:none;');
+        });
+        ul_list.addEventListener('click', function (e) {
+            var div_clicked;
+            if (e.target.tagName === 'LI') {
+                div_clicked = e.target.getElementsByTagName('div')[0];
+            } else if (e.target.className.indexOf('m-' + name) !== -1) {
+                div_clicked = e.target;
+            }
+            if (div_clicked) {
+                click_handler(div_clicked, div_selected);
+            }
+        }, false);
+
+        return [wrapper, ul_list, div_selected, li_divs];
+    }
+
+    function renderColors() {
+        var li_length =  _self.options.WIDGETS.COLOR.HEX.length,
+            click_handler = function (div_clicked, div_selected) {
+                var hex = div_clicked.style['background-color'];
+                _self.setColor(hex);
+                _self.options.WIDGETS.COLOR.ELEMENTS.forEach(function (div) {
+                    div.style['background-color'] = hex;
+                });
+            };
+        var kits = renderHierarchy('color', li_length, click_handler);
+        var wrapper = kits[0], ul_list = kits[1], div_selected = kits[2], li_divs = kits[3];
+
+        div_selected.style['background-color'] = _self.options.WIDGETS.COLOR.HEX[0];
+        _self.options.WIDGETS.COLOR.ELEMENTS.push(div_selected);
+
+        li_divs.forEach(function (div, i) {
+            div.style['background-color'] = _self.options.WIDGETS.COLOR.HEX[i];
         });
 
-        return {tool_selected: wrapper, tool_list: ul_tool_list};
+        return [wrapper, ul_list];
+    }
+
+    function renderTools() {
+        var li_length =  _self.options.WIDGETS.TOOL.length,
+            click_handler = function (div_clicked, div_selected) {
+                var tool = div_clicked.getAttribute('data-tool'),
+                    icon = div_clicked.innerText;
+                _self.setTool(tool);
+                div_selected.innerText = icon;
+            };
+        var kits = renderHierarchy('tool', li_length, click_handler);
+        var wrapper = kits[0], ul_list = kits[1], div_selected = kits[2], li_divs = kits[3];
+
+        div_selected.innerText = _self.options.WIDGETS.PAINT_TYPE.PAINT.icon;
+
+        li_divs.forEach(function (div, i) {
+            var tool = _self.options.WIDGETS.TOOL[i],
+                icon = _self.options.WIDGETS.PAINT_TYPE[tool].icon;
+            div.setAttribute('data-tool', tool);
+            div.innerText = icon;
+        });
+
+        return [wrapper, ul_list];
+    }
+
+    function renderSizes() {
+        var li_length =  _self.options.WIDGETS.SIZE.length,
+            click_handler = function (div_clicked, div_selected) {
+                var width = div_clicked.style['width'],
+                    radius = width.substring(0, width.length - 2) / 2;
+                _self.setSize(radius);
+                div_selected.getElementsByTagName('div')[0].style['width'] = width;
+                div_selected.getElementsByTagName('div')[0].style['height'] = width;
+            };
+        var kits = renderHierarchy('size', li_length, click_handler);
+        var wrapper = kits[0], ul_list = kits[1], div_selected = kits[2], li_divs = kits[3];
+
+        var div_inner = document.createElement('div');
+        div_inner.setAttribute('class', 'm-size');
+        div_selected.appendChild(div_inner);
+
+        div_inner.style['width'] = _self.options.WIDGETS.SIZE[0] + 'px';
+        div_inner.style['height'] = _self.options.WIDGETS.SIZE[0] + 'px';
+        div_inner.style['background-color'] = _self.options.WIDGETS.COLOR.HEX[0];
+        _self.options.WIDGETS.COLOR.ELEMENTS.push(div_inner);
+
+        li_divs.forEach(function (div, i) {
+            var size = _self.options.WIDGETS.SIZE[i];
+            div.style['width'] = size + 'px';
+            div.style['height'] = size + 'px';
+            div.style['background-color'] = _self.options.WIDGETS.COLOR.HEX[0];
+            _self.options.WIDGETS.COLOR.ELEMENTS.push(div);
+        });
+
+        return [wrapper, ul_list];
     }
     // TODO REFACTOR:
     function bindEvents() {
@@ -444,6 +483,7 @@
         _internal.el.addEventListener("mouseover", mouseOver, false);
         _internal.el.addEventListener("mouseout", mouseOut, false);
     }
+
     function bindClick(el, type) {
         var _method, _args;
         switch (type) {
