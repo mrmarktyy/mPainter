@@ -35,22 +35,20 @@
                         '#C7C5E6', '#171515'],
                         ELEMENTS: []
                     },
-                    TOOL: [
-                        "PAINT", "LINE"
-                    ],
+                    TOOL: {
+                        TYPE: ["PAINT", "LINE"],
+                        PAINT: {
+                            NAME: "PAINT",
+                            ICON: '\u2710'
+                        },
+                        LINE: {
+                            NAME: "LINE",
+                            ICON: '\u2711'
+                        }
+                    },
                     SIZE: [
                         6, 10, 14
                     ],
-                    PAINT_TYPE: {
-                        PAINT: {
-                            text: 'Paint',
-                            icon: '\u2710'
-                        },
-                        LINE: {
-                            text: 'Line',
-                            icon: '\u2711'
-                        }
-                    },
                     UNDO: {
                         text: 'Undo',
                         icon: '\u21B6'
@@ -81,7 +79,6 @@
             redo: [],
 
             is_mousedown: false,
-            first_draw: true,
             paint_start: undefined,
             paint_stack: {
                 head: 0,
@@ -103,11 +100,11 @@
             //     "mouseover": _mouseOver,
             //     "mouseout": _mouseOut
             // },
-
-            TOOLS: {
-                PAINT: "PAINT",
-                LINE: "LINE"
-            }
+            // TOOLS: this.options.WIDGETS.TOOL
+            // TOOLS: {
+            //     PAINT: "PAINT",
+            //     LINE: "LINE"
+            // }
 
         };
 
@@ -129,8 +126,8 @@
         },
 
         setTool: function (tool_name) {
-            if (_internal.TOOLS[tool_name]) {
-                _internal.config.tool = _internal.TOOLS[tool_name];
+            if (this.options.WIDGETS.TOOL[tool_name]) {
+                _internal.config.tool = tool_name;
             } else {
                 throw "TOOL: " + tool_name + " is not available.";
             }
@@ -264,7 +261,6 @@
             _internal.redo = [];
             _internal.config.element_index = 0;
             _internal.is_mousedown = false;
-            _internal.first_draw = true;
             _internal.paint_start = undefined;
             _internal.paint_stack = {
                 head: 0,
@@ -416,7 +412,7 @@
     }
 
     function renderTools() {
-        var li_length =  _self.options.WIDGETS.TOOL.length,
+        var li_length =  _self.options.WIDGETS.TOOL.TYPE.length,
             click_handler = function (div_clicked, div_selected) {
                 var tool = div_clicked.getAttribute('data-tool'),
                     icon = div_clicked.innerText;
@@ -426,11 +422,12 @@
         var kits = renderHierarchy('tool', li_length, click_handler);
         var wrapper = kits[0], ul_list = kits[1], div_selected = kits[2], li_divs = kits[3];
 
-        div_selected.innerText = _self.options.WIDGETS.PAINT_TYPE.PAINT.icon;
+        var tool = _self.options.WIDGETS.TOOL.TYPE[0];
+        div_selected.innerText = _self.options.WIDGETS.TOOL[tool].ICON;
 
         li_divs.forEach(function (div, i) {
-            var tool = _self.options.WIDGETS.TOOL[i],
-                icon = _self.options.WIDGETS.PAINT_TYPE[tool].icon;
+            var tool = _self.options.WIDGETS.TOOL.TYPE[i],
+                icon = _self.options.WIDGETS.TOOL[tool].ICON;
             div.setAttribute('data-tool', tool);
             div.innerText = icon;
         });
@@ -526,10 +523,13 @@
         e.stopPropagation();
 
         // set paint_start timestamp
-        if (_internal.first_draw === true) {
-            _internal.first_draw = false;
+        if (_internal.paint_start === undefined) {
             _internal.paint_start = time();
         }
+        // if (_internal.first_draw === true) {
+        //     _internal.first_draw = false;
+        //     _internal.paint_start = time();
+        // }
 
         var point = getPointFromEvent(e);
         log("Start: " + point.x + "," + point.y);
@@ -652,10 +652,10 @@
      */
     function draw(config, points) {
         switch (config.tool) {
-        case _internal.TOOLS.PAINT:
+        case _self.options.WIDGETS.TOOL.PAINT.NAME:
             drawPath(config, points);
             break;
-        case _internal.TOOLS.LINE:
+        case _self.options.WIDGETS.TOOL.LINE.NAME:
             drawLine(config, points);
             break;
         }
@@ -745,10 +745,10 @@
      */
     function newCur(e) {
         switch (_internal.config.tool) {
-        case _internal.TOOLS.PAINT:
+        case _self.options.WIDGETS.TOOL.PAINT.NAME:
             newPointerCur(e);
             break;
-        case _internal.TOOLS.LINE:
+        case _self.options.WIDGETS.TOOL.LINE.NAME:
             newCrossCur(e);
             break;
         }
