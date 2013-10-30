@@ -86,6 +86,7 @@
             redo: [],
 
             is_mousedown: false,
+            replay_in_progress: false,
             paint_start: undefined,
             paint_stack: {
                 elements: []
@@ -126,11 +127,11 @@
         },
 
         undo: function () {
-            this.exec("undo");
+            exec("undo");
         },
 
         redo: function () {
-            this.exec("redo");
+            exec("redo");
         },
         // TODO FIX: Function does not work
         saveImage: function () {
@@ -163,6 +164,7 @@
                 number_drew = 0,
                 replay_points = [];
 
+            _internal.replay_in_progress = true;
             clearPaint();
             var render = function () {
                 var i, j, element_end,
@@ -208,6 +210,7 @@
                 }
                 // If replay not done do recursion, otherwise execute callback
                 if (number_drew === elements_length) {
+                    _internal.replay_in_progress = false;
                     if (callback !== undefined && isFunction(callback)) {
                         callback();
                     }
@@ -219,33 +222,21 @@
             _raf(render);
         },
 
-        exec: function (type) {
-            // TODO: Refactor, now is checking the length of 'type' array
-            if (_internal[type].length) {
-                var o = _internal[type].pop(),
-                    _index = o.id,
-                    _value = o.value;
+        getJSON: function () {
+            return _internal.paint_stack;
+        },
 
-                // push state to oppsite array
-                _internal[revs(type)].push({id: _index, value: revs(_value)});
-
-                switch (_value) {
-                case "a":
-                    _internal.paint_stack.elements[_index].is_deleted = false;
-                    var config = _internal.paint_stack.elements[_index].config;
-                    config.opacity *= 2;
-                    draw(config);
-                    break;
-                case "d":
-                    _internal.paint_stack.elements[_index].is_deleted = true;
-                    removeElement(_index);
-                    break;
+        renderJSON: function (paint_stack) {
+            if (paint_stack.elements !== undefined) {
+                for (var i = 0, n = paint_stack.elements.length; i < n; i++) {
+                    var element = paint_stack.elements[i];
+                    if (element.is_deleted === false) {
+                        // TODO: fix this hack
+                        element.config.opacity *= 2;
+                        draw(element.config, element.points);
+                    }
                 }
             }
-        },
-        // TODO REMOVE: development use only
-        getInternal: function () {
-            return _internal;
         },
 
         reset: function () {
@@ -262,7 +253,7 @@
 
     };
     /**
-     * Render paint board and required buttons
+     * Render paint board and required widgets
      */
     function renderUI(ui) {
         renderPaintBoard();
@@ -490,17 +481,19 @@
         e.preventDefault();
         e.stopPropagation();
 
-        // set paint_start timestamp
-        if (_internal.paint_start === undefined) {
-            _internal.paint_start = time();
+        if (isValidToStart()) {
+            // set paint_start timestamp
+            if (_internal.paint_start === undefined) {
+                _internal.paint_start = time();
+            }
+
+            var point = getPointFromEvent(e);
+            log("Start: " + point.x + "," + point.y);
+
+            addPoint(point, _internal.config);
+
+            _internal.is_mousedown = true;
         }
-
-        var point = getPointFromEvent(e);
-        log("Start: " + point.x + "," + point.y);
-
-        addPoint(point, _internal.config);
-
-        _internal.is_mousedown = true;
     }
     // TODO: Add throttle if necessary
     function paintMove(e) {
@@ -521,12 +514,14 @@
         e.preventDefault();
         e.stopPropagation();
 
-        var point = getPointFromEvent(e);
-        log('Stop: ' + point.x + ',' + point.y);
+        if (_internal.is_mousedown === true) {
+            var point = getPointFromEvent(e);
+            log('Stop: ' + point.x + ',' + point.y);
 
-        addPoint(point, _internal.config);
+            addPoint(point, _internal.config);
 
-        endElement();
+            endElement();
+        }
     }
 
     function mouseOver(e) {
@@ -756,8 +751,42 @@
         }
     }
     /**
+     * Others
+     */
+    function exec(type) {
+        // TODO: Refactor, now is checking the length of 'type' array
+        if (_internal[type].length) {
+            var o = _internal[type].pop(),
+                _index = o.id,
+                _value = o.value;
+
+            // push state to oppsite array
+            _internal[revs(type)].push({id: _index, value: revs(_value)});
+
+            switch (_value) {
+            case "a":
+                _internal.paint_stack.elements[_index].is_deleted = false;
+                var config = _internal.paint_stack.elements[_index].config;
+                // TODO: fix this hack
+                config.opacity *= 2;
+                draw(config);
+                break;
+            case "d":
+                _internal.paint_stack.elements[_index].is_deleted = true;
+                removeElement(_index);
+                break;
+            }
+        }
+    }
+    /**
      * Helper methods
      */
+    function isValidToStart() {
+        if (_internal.replay_in_progress === true) {
+            return false;
+        }
+        return true;
+    }
     function makeElement(tag, attrs) {
         var elm = document.createElementNS(_xmlns, tag);
         for (var i in attrs) {
