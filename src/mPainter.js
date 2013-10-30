@@ -444,7 +444,14 @@
     }
 
     function renderGeneral() {
-        var general_buttons = [];
+        var general_buttons = [],
+            click_handler = function (conf) {
+                return function () {
+                    if (isFunction(_self[conf.METHOD])) {
+                        _self[conf.METHOD].call(_self);
+                    }
+                };
+            };
         for (var type in _self.options.WIDGETS.GENERAL) {
             if (_self.options.WIDGETS.GENERAL.hasOwnProperty(type)) {
                 var button_config = _self.options.WIDGETS.GENERAL[type],
@@ -455,13 +462,7 @@
                 div.appendChild(span);
                 div.setAttribute('class', 'm-button');
                 div.setAttribute('title', button_config.METHOD);
-                div.addEventListener('click', (function (button_config) {
-                    return function () {
-                        if (isFunction(_self[button_config.METHOD])) {
-                            _self[button_config.METHOD].call(_self);
-                        }
-                    };
-                })(button_config), false);
+                div.addEventListener('click', click_handler(button_config), false);
                 general_buttons.push(div);
             }
         }
@@ -822,8 +823,8 @@
 
     function isDescendant(parent, child) {
         var node = child.parentNode;
-        while (node != null) {
-            if (node == parent) {
+        while (node !== null) {
+            if (node === parent) {
                 return true;
             }
             node = node.parentNode;
