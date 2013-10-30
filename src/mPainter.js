@@ -1,5 +1,5 @@
 (function (window, undefined) {
-    "use strict";
+    'use strict';
 
     var mPainter = window.mPainter || {},
         _internal = {},
@@ -11,9 +11,9 @@
      */
     mPainter = function (hook, options) {
         var defaults = {
-                id: "m-board",
-                cursor_id: "m-cursor",
-                element_prefix: "element_",
+                id: 'm-board',
+                cursor_id: 'm-cursor',
+                element_prefix: 'element_',
                 ui: {
                     widget: {
                         enable: true
@@ -41,13 +41,13 @@
                         ELEMENTS: []
                     },
                     TOOL: {
-                        TYPE: ["PAINT", "LINE"],
+                        TYPE: ['PAINT', 'LINE'],
                         PAINT: {
-                            NAME: "PAINT",
+                            NAME: 'PAINT',
                             ICON: '\u2710'
                         },
                         LINE: {
-                            NAME: "LINE",
+                            NAME: 'LINE',
                             ICON: '\u2711'
                         }
                     },
@@ -94,10 +94,10 @@
 
             config: {
                 element_index: 0,
-                tool: 'PAINT',
+                tool: this.options.WIDGETS.TOOL.TYPE[0],
                 painter_radius: 2,
                 opacity: 1,
-                color: "#FF0000"  // red
+                color: this.options.WIDGETS.COLOR.HEX[0]
             },
         };
 
@@ -122,33 +122,33 @@
             if (this.options.WIDGETS.TOOL[tool_name]) {
                 _internal.config.tool = tool_name;
             } else {
-                throw "TOOL: " + tool_name + " is not available.";
+                throw 'TOOL: ' + tool_name + ' is not available.';
             }
         },
 
         undo: function () {
-            exec("undo");
+            exec('undo');
         },
 
         redo: function () {
-            exec("redo");
+            exec('redo');
         },
         // TODO FIX: Function does not work
         saveImage: function () {
             // Create a canvas element
-            var canvas = _get("mycanvas");
-            var ctx = canvas.getContext("2d");
+            var canvas = _get('mycanvas');
+            var ctx = canvas.getContext('2d');
 
             var data = new XMLSerializer().serializeToString(_internal.el);
             var DOMURL = window.URL || window.webkitURL || window;
             // var img = new Image();
             var img = document.createElement('img');
-            var svg = new Blob([data], {type: "image/svg+xml;charset=utf-8"});
+            var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
             var url = DOMURL.createObjectURL(svg);
             img.onload = function () {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 // DOMURL.revokeObjectURL(url);
-                var b64 = canvas.toDataURL("image/png");
+                var b64 = canvas.toDataURL('image/png');
             };
             img.src = url;
         },
@@ -165,7 +165,7 @@
                 replay_points = [];
 
             _internal.replay_in_progress = true;
-            clearPaint();
+            clearBoard();
             var render = function () {
                 var i, j, element_end,
                     before_time = _internal.paint_start + deleted_time + (time() - replay_time);
@@ -244,11 +244,12 @@
             _internal.redo = [];
             _internal.config.element_index = 0;
             _internal.is_mousedown = false;
+            _internal.replay_in_progress = false;
             _internal.paint_start = undefined;
             _internal.paint_stack = {
                 elements: []
             };
-            clearPaint();
+            clearBoard();
         }
 
     };
@@ -275,7 +276,7 @@
         hook.appendChild(_svg);
     }
 
-    function renderWidgets(widget_config) {
+    function renderWidgets(widget_conf) {
         var hook = _get(_self.options.hook_id),
             button_groups = document.createElement('div');
         button_groups.setAttribute('class', _self.options.UI.widget_group_classname);
@@ -325,12 +326,12 @@
         }
 
         wrapper.addEventListener('mouseover', function (e) {
-            ul_list.setAttribute('style', 'display:block;');
+            ul_list.style['display'] = 'block';
         }, false);
         wrapper.addEventListener('mouseout', function (e) {
             var toElement = e.toElement || e.relatedTarget;
             if (!isDescendant(ul_list, toElement) && toElement !== ul_list) {
-                ul_list.setAttribute('style', 'display:none;');
+                ul_list.style['display'] = 'none';
             }
         }, false);
         ul_list.addEventListener('mouseout', function (e) {
@@ -340,7 +341,7 @@
                (toElement === ul_list || isDescendant(ul_list, toElement))) {
                 return;
             }
-            ul_list.setAttribute('style', 'display:none;');
+            ul_list.style['display'] = 'none';
         });
         ul_list.addEventListener('click', function (e) {
             var div_clicked;
@@ -470,8 +471,8 @@
         _self.options.stop_trigger.forEach(function (eventType) {
             _internal.el.addEventListener(eventType, paintStop, false);
         });
-        _internal.el.addEventListener("mouseover", mouseOver, false);
-        _internal.el.addEventListener("mouseout", mouseOut, false);
+        _internal.el.addEventListener('mouseover', mouseOver, false);
+        _internal.el.addEventListener('mouseout', mouseOut, false);
     }
     /**
      * Events handlers
@@ -488,7 +489,7 @@
             }
 
             var point = getPointFromEvent(e);
-            log("Start: " + point.x + "," + point.y);
+            log('Start: ' + point.x + ',' + point.y);
 
             addPoint(point, _internal.config);
 
@@ -502,7 +503,7 @@
             e.stopPropagation();
 
             var point = getPointFromEvent(e);
-            log("Move: " + point.x + "," + point.y);
+            log('Move: ' + point.x + ',' + point.y);
 
             addPoint(point, _internal.config);
         }
@@ -535,7 +536,7 @@
     function mouseOut(e) {
         // check if truly mouse out from svg element
         var toElement = e.toElement ? e.toElement : e.relatedTarget;
-        if (toElement === null || toElement.nodeName !== "svg" && toElement.parentNode.nodeName !== "svg" && toElement.id !== _self.options.cursor_id) {
+        if (toElement === null || toElement.nodeName !== 'svg' && toElement.parentNode.nodeName !== 'svg' && toElement.id !== _self.options.cursor_id) {
             if (_internal.is_mousedown === true) {
                 log('Out', e);
 
@@ -581,7 +582,7 @@
         for (var j = 0, n = _internal.redo.length; j < n; j++) {
             _internal.undo.push({id: _internal.redo[j].id, value: _internal.redo[j].value});
         }
-        _internal.undo.push({id: _internal.config.element_index, value: "d"});
+        _internal.undo.push({id: _internal.config.element_index, value: 'd'});
         _internal.redo = [];
         _internal.config.element_index ++;
     }
@@ -596,11 +597,11 @@
     function setElementOpacity(config) {
         var element = _get(_self.options.element_prefix + config.element_index);
         if (element) {
-            element.setAttribute("opacity", config.opacity);
+            element.setAttribute('opacity', config.opacity);
         }
     }
 
-    function clearPaint() {
+    function clearBoard() {
         while (_internal.el.lastChild) {
             _internal.el.removeChild(_internal.el.lastChild);
         }
@@ -623,16 +624,16 @@
         var element_id = _self.options.element_prefix + config.element_index,
             path = _get(element_id);
         if (path) {
-            path.setAttribute("d", makeD(config.element_index, points));
+            path.setAttribute('d', makeD(config.element_index, points));
         } else {
-            path = makeElement("path", {
-                "id": element_id,
-                "d": makeD(config.element_index, points),
-                "fill": "none",
-                "stroke": config.color,
-                "stroke-linecap": "round",
-                "stroke-width": config.painter_radius * 2,
-                "opacity": config.opacity / 2
+            path = makeElement('path', {
+                'id': element_id,
+                'd': makeD(config.element_index, points),
+                'fill': 'none',
+                'stroke': config.color,
+                'stroke-linecap': 'round',
+                'stroke-width': config.painter_radius * 2,
+                'opacity': config.opacity / 2
             });
             _internal.el.appendChild(path);
         }
@@ -642,19 +643,19 @@
         var points = points_arr || getPointsArr(element_index),
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
-            d = "M" + points[0].x + "," + points[0].y;
+            d = 'M' + points[0].x + ',' + points[0].y;
         // if only has 1-3 points
         if (len === 1) {
             return d;
         }
         if (len === 2 || len === 3) {
-            return d + "T" + points[len - 1].x + "," + points[len - 1].y;
+            return d + 'T' + points[len - 1].x + ',' + points[len - 1].y;
         }
-        d += "Q";
+        d += 'Q';
         for (var i = 1; i < last; i++) {
-            d += points[i].x + "," + points[i].y + " ";
+            d += points[i].x + ',' + points[i].y + ' ';
         }
-        d += "T" + points[last].x + "," + points[last].y;
+        d += 'T' + points[last].x + ',' + points[last].y;
         return d;
     }
 
@@ -663,21 +664,21 @@
             line = _get(element_id);
         if (line) {
             var point = getPoint(points, config.element_index);
-            line.setAttribute("x2", point.x);
-            line.setAttribute("y2", point.y);
+            line.setAttribute('x2', point.x);
+            line.setAttribute('y2', point.y);
         } else {
             var point_1 = getPoint(points, config.element_index, 0),
                 point_2 = getPoint(points, config.element_index);
-            line = makeElement("line", {
-                "id": element_id,
-                "x1": point_1.x,
-                "y1": point_1.y,
-                "x2": point_2.x,
-                "y2": point_2.y,
-                "stroke-linecap": "round",
-                "stroke-width": config.painter_radius * 2,
-                "stroke": config.color,
-                "opacity": config.opacity / 2
+            line = makeElement('line', {
+                'id': element_id,
+                'x1': point_1.x,
+                'y1': point_1.y,
+                'x2': point_2.x,
+                'y2': point_2.y,
+                'stroke-linecap': 'round',
+                'stroke-width': config.painter_radius * 2,
+                'stroke': config.color,
+                'opacity': config.opacity / 2
             });
             _internal.el.appendChild(line);
         }
@@ -713,30 +714,30 @@
     }
 
     function newPointerCur(e) {
-        var cursor = makeElement("circle", {
-            "id": _self.options.cursor_id,
-            "cx": e.offsetX,
-            "cy": e.offsetY,
-            "r": _internal.config.painter_radius,
-            "stroke": _internal.config.color,
-            "fill": _internal.config.color
+        var cursor = makeElement('circle', {
+            'id': _self.options.cursor_id,
+            'cx': e.offsetX,
+            'cy': e.offsetY,
+            'r': _internal.config.painter_radius,
+            'stroke': _internal.config.color,
+            'fill': _internal.config.color
         });
         _internal.el.appendChild(cursor);
     }
 
     function newCrossCur(e) {
-        var styleList = "";
-        if (_internal.el.getAttribute("style")) {
-            styleList = _internal.el.getAttribute("style");
+        var styleList = '';
+        if (_internal.el.getAttribute('style')) {
+            styleList = _internal.el.getAttribute('style');
         }
-        _internal.el.setAttribute("style", styleList + "cursor:crosshair;");
+        _internal.el.setAttribute('style', styleList + 'cursor:crosshair;');
     }
 
     function updateCur(e) {
         var cursor = _get(_self.options.cursor_id);
         if (cursor) {
-            cursor.setAttribute("cx", e.offsetX);
-            cursor.setAttribute("cy", e.offsetY);
+            cursor.setAttribute('cx', e.offsetX);
+            cursor.setAttribute('cy', e.offsetY);
         }
     }
 
@@ -747,7 +748,7 @@
             cursor.parentNode.removeChild(cursor);
         }
         if (styleList) {
-            _internal.el.setAttribute("style", styleList.replace(/cursor:crosshair;/, ''));
+            _internal.el.setAttribute('style', styleList.replace(/cursor:crosshair;/, ''));
         }
     }
     /**
@@ -764,14 +765,14 @@
             _internal[revs(type)].push({id: _index, value: revs(_value)});
 
             switch (_value) {
-            case "a":
+            case 'a':
                 _internal.paint_stack.elements[_index].is_deleted = false;
                 var config = _internal.paint_stack.elements[_index].config;
                 // TODO: fix this hack
                 config.opacity *= 2;
                 draw(config);
                 break;
-            case "d":
+            case 'd':
                 _internal.paint_stack.elements[_index].is_deleted = true;
                 removeElement(_index);
                 break;
@@ -825,10 +826,10 @@
     }
 
     function revs(input) {
-        if (input === "d") return "a";
-        if (input === "a") return "d";
-        if (input === "redo") return "undo";
-        if (input === "undo") return "redo";
+        if (input === 'd') return 'a';
+        if (input === 'a') return 'd';
+        if (input === 'redo') return 'undo';
+        if (input === 'undo') return 'redo';
         return input;
     }
 
