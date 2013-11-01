@@ -55,11 +55,13 @@ It is currently tested and working on:
 * tablets/mobile devices and win8 point screen support ✓
 * cool replay support ✓
 * widget UI integration & enhancement ✓
+* get/set public methods for save/load a painting ✓
+* support various shapes (line, rectangle) ✓
 
 ### Road Map
 
 * support save painting and direct upload it to S3
-* support various shapes (line, square, eclipse, etc)
+* support various shapes (eclipse, etc)
 * support layer based functions including resize, flip, rotate, etc
 * and more...
 
