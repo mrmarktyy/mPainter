@@ -52,7 +52,7 @@
                         },
                         RECT: {
                             NAME: 'RECT',
-                            ICON: '\u32CC'
+                            ICON: '\u25AD'
                         }
                     },
                     SIZE: [
