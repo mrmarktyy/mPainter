@@ -41,14 +41,18 @@
                         ELEMENTS: []
                     },
                     TOOL: {
-                        TYPE: ['PAINT', 'LINE'],
-                        PAINT: {
-                            NAME: 'PAINT',
+                        TYPE: ['FREE', 'LINE', 'RECT'],
+                        FREE: {
+                            NAME: 'FREE',
                             ICON: '\u2710'
                         },
                         LINE: {
                             NAME: 'LINE',
                             ICON: '\u2711'
+                        },
+                        RECT: {
+                            NAME: 'RECT',
+                            ICON: '\u32CC'
                         }
                     },
                     SIZE: [
@@ -226,7 +230,7 @@
             return _internal.paint_stack;
         },
 
-        renderJSON: function (paint_stack) {
+        setJSON: function (paint_stack) {
             if (paint_stack.elements !== undefined) {
                 for (var i = 0, n = paint_stack.elements.length; i < n; i++) {
                     var element = paint_stack.elements[i];
@@ -611,31 +615,34 @@
      */
     function draw(config, points) {
         switch (config.tool) {
-        case _self.options.WIDGETS.TOOL.PAINT.NAME:
+        case _self.options.WIDGETS.TOOL.FREE.NAME:
             drawPath(config, points);
             break;
         case _self.options.WIDGETS.TOOL.LINE.NAME:
             drawLine(config, points);
+            break;
+        case _self.options.WIDGETS.TOOL.RECT.NAME:
+            drawRect(config, points);
             break;
         }
     }
 
     function drawPath(config, points) {
         var element_id = _self.options.element_prefix + config.element_index,
-            path = _get(element_id);
-        if (path) {
-            path.setAttribute('d', makeD(config.element_index, points));
+            element = _get(element_id);
+        if (element) {
+            setElementAttr(element, {'d': makeD(config.element_index, points)});
         } else {
-            path = makeElement('path', {
-                'id': element_id,
-                'd': makeD(config.element_index, points),
-                'fill': 'none',
-                'stroke': config.color,
-                'stroke-linecap': 'round',
-                'stroke-width': config.painter_radius * 2,
-                'opacity': config.opacity / 2
+            element = makeElement('path', {
+                'id'                : element_id,
+                'd'                 : makeD(config.element_index, points),
+                'stroke'            : config.color,
+                'stroke-width'      : config.painter_radius * 2,
+                'opacity'           : config.opacity / 2,
+                'fill'              : 'none',
+                'stroke-linecap'    : 'round'
             });
-            _internal.el.appendChild(path);
+            _internal.el.appendChild(element);
         }
     }
 
@@ -661,26 +668,60 @@
 
     function drawLine(config, points) {
         var element_id = _self.options.element_prefix + config.element_index,
-            line = _get(element_id);
-        if (line) {
+            element = _get(element_id);
+        if (element) {
             var point = getPoint(points, config.element_index);
-            line.setAttribute('x2', point.x);
-            line.setAttribute('y2', point.y);
-        } else {
-            var point_1 = getPoint(points, config.element_index, 0),
-                point_2 = getPoint(points, config.element_index);
-            line = makeElement('line', {
-                'id': element_id,
-                'x1': point_1.x,
-                'y1': point_1.y,
-                'x2': point_2.x,
-                'y2': point_2.y,
-                'stroke-linecap': 'round',
-                'stroke-width': config.painter_radius * 2,
-                'stroke': config.color,
-                'opacity': config.opacity / 2
+            setElementAttr(element, {
+                'x2': point.x,
+                'y2': point.y
             });
-            _internal.el.appendChild(line);
+        } else {
+            var point_begin = getPoint(points, config.element_index, 0),
+                point_end = getPoint(points, config.element_index);
+            element = makeElement('line', {
+                'id'                : element_id,
+                'x1'                : point_begin.x,
+                'y1'                : point_begin.y,
+                'x2'                : point_end.x,
+                'y2'                : point_end.y,
+                'stroke-width'      : config.painter_radius * 2,
+                'stroke'            : config.color,
+                'opacity'           : config.opacity / 2,
+                'stroke-linecap'    : 'round'
+            });
+            _internal.el.appendChild(element);
+        }
+    }
+
+    function drawRect(config, points) {
+        var element_id = _self.options.element_prefix + config.element_index,
+            element = _get(element_id),
+            point_begin =  getPoint(points, config.element_index, 0),
+            point_end = getPoint(points, config.element_index),
+            x = Math.min(point_begin.x, point_end.x),
+            y = Math.min(point_begin.y, point_end.y),
+            width =  Math.abs(point_begin.x - point_end.x),
+            height = Math.abs(point_begin.y - point_end.y);
+        if (element) {
+            setElementAttr(element, {
+                'x': x,
+                'y': y,
+                'width': width,
+                'height': height
+            });
+        } else {
+            element = makeElement('rect', {
+                'id'                : element_id,
+                'x'                 : x,
+                'y'                 : y,
+                'width'             : width,
+                'height'            : height,
+                'stroke-width'      : config.painter_radius * 2,
+                'stroke'            : config.color,
+                'opacity'           : config.opacity / 2,
+                'fill'              : 'none',
+            });
+            _internal.el.appendChild(element);
         }
     }
 
@@ -704,10 +745,11 @@
      */
     function newCur(e) {
         switch (_internal.config.tool) {
-        case _self.options.WIDGETS.TOOL.PAINT.NAME:
+        case _self.options.WIDGETS.TOOL.FREE.NAME:
             newPointerCur(e);
             break;
         case _self.options.WIDGETS.TOOL.LINE.NAME:
+        case _self.options.WIDGETS.TOOL.RECT.NAME:
             newCrossCur(e);
             break;
         }
@@ -736,8 +778,10 @@
     function updateCur(e) {
         var cursor = _get(_self.options.cursor_id);
         if (cursor) {
-            cursor.setAttribute('cx', e.offsetX);
-            cursor.setAttribute('cy', e.offsetY);
+            setElementAttr(cursor, {
+                'cx': e.offsetX,
+                'cy': e.offsetY
+            });
         }
     }
 
@@ -790,6 +834,12 @@
     }
     function makeElement(tag, attrs) {
         var elm = document.createElementNS(_xmlns, tag);
+        if (attrs) {
+            elm = setElementAttr(elm, attrs);
+        }
+        return elm;
+    }
+    function setElementAttr(elm, attrs) {
         for (var i in attrs) {
             if (attrs.hasOwnProperty(i)) {
                 elm.setAttribute(i, attrs[i]);
