@@ -41,7 +41,7 @@
                         ELEMENTS: []
                     },
                     TOOL: {
-                        TYPE: ['FREE', 'LINE', 'RECT'],
+                        TYPE: ['FREE', 'LINE', 'RECT', 'ELLIPSE'],
                         FREE: {
                             NAME: 'FREE',
                             ICON: '\u2710'
@@ -53,6 +53,10 @@
                         RECT: {
                             NAME: 'RECT',
                             ICON: '\u25AD'
+                        },
+                        ELLIPSE: {
+                            NAME: 'ELLIPSE',
+                            ICON: '\u25EF'
                         }
                     },
                     SIZE: [
@@ -466,14 +470,14 @@
     }
     // TODO: REFACTOR
     function bindEvents() {
-        _self.options.start_trigger.forEach(function (eventType) {
-            _internal.el.addEventListener(eventType, paintStart, false);
+        _self.options.start_trigger.forEach(function (type) {
+            _internal.el.addEventListener(type, paintStart, false);
         });
-        _self.options.move_trigger.forEach(function (eventType) {
-            _internal.el.addEventListener(eventType, paintMove, false);
+        _self.options.move_trigger.forEach(function (type) {
+            _internal.el.addEventListener(type, paintMove, false);
         });
-        _self.options.stop_trigger.forEach(function (eventType) {
-            _internal.el.addEventListener(eventType, paintStop, false);
+        _self.options.stop_trigger.forEach(function (type) {
+            _internal.el.addEventListener(type, paintStop, false);
         });
         _internal.el.addEventListener('mouseover', mouseOver, false);
         _internal.el.addEventListener('mouseout', mouseOut, false);
@@ -482,20 +486,18 @@
      * Events handlers
      */
     function paintStart(e) {
-        // Fix moving in svg with text cursor issue
         e.preventDefault();
         e.stopPropagation();
 
         if (isValidToStart()) {
-            // set paint_start timestamp
             if (_internal.paint_start === undefined) {
                 _internal.paint_start = time();
             }
-
-            var point = getPointFromEvent(e);
+            var point = getPointFromEvent(e),
+                points_arr = getPointsArr(_internal.config.element_index);
             log('Start: ' + point.x + ',' + point.y);
 
-            addPoint(point, _internal.config);
+            addPoint(point, points_arr);
 
             _internal.is_mousedown = true;
         }
@@ -506,10 +508,13 @@
             e.preventDefault();
             e.stopPropagation();
 
-            var point = getPointFromEvent(e);
+            var point = getPointFromEvent(e),
+                points_arr = getPointsArr(_internal.config.element_index);
             log('Move: ' + point.x + ',' + point.y);
 
-            addPoint(point, _internal.config);
+            addPoint(point, points_arr);
+
+            draw(_internal.config, points_arr);
         }
 
         updateCur(e);
@@ -520,10 +525,13 @@
         e.stopPropagation();
 
         if (_internal.is_mousedown === true) {
-            var point = getPointFromEvent(e);
+            var point = getPointFromEvent(e),
+                points_arr = getPointsArr(_internal.config.element_index);
             log('Stop: ' + point.x + ',' + point.y);
 
-            addPoint(point, _internal.config);
+            addPoint(point, points_arr);
+
+            draw(_internal.config, points_arr);
 
             endElement();
         }
@@ -543,20 +551,16 @@
         if (toElement === null || toElement.nodeName !== 'svg' && toElement.parentNode.nodeName !== 'svg' && toElement.id !== _self.options.cursor_id) {
             if (_internal.is_mousedown === true) {
                 log('Out', e);
-
                 endElement();
             }
-
             removeCur();
         }
     }
     /**
      * Core
      */
-    function addPoint(point, config) {
-        getPointsArr(config.element_index).push(point);
-
-        draw(config);
+    function addPoint(point, points_arr) {
+        points_arr.push(point);
     }
 
     function initElement(element_index) {
@@ -624,6 +628,9 @@
         case _self.options.WIDGETS.TOOL.RECT.NAME:
             drawRect(config, points);
             break;
+        case _self.options.WIDGETS.TOOL.ELLIPSE.NAME:
+            drawEllipse(config, points);
+            break;
         }
     }
 
@@ -651,10 +658,7 @@
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = 'M' + points[0].x + ',' + points[0].y;
-        // if only has 1-3 points
-        if (len === 1) {
-            return d;
-        }
+        // if only has 2-3 points
         if (len === 2 || len === 3) {
             return d + 'T' + points[len - 1].x + ',' + points[len - 1].y;
         }
@@ -725,6 +729,35 @@
         }
     }
 
+    function drawEllipse(config, points) {
+        var element_id = _self.options.element_prefix + config.element_index,
+            element = _get(element_id),
+            point_begin =  getPoint(points, config.element_index, 0),
+            point_end = getPoint(points, config.element_index),
+            width =  Math.abs(point_begin.x - point_end.x),
+            height = Math.abs(point_begin.y - point_end.y);
+        console.log(point_begin, point_end, width, height);
+        if (element) {
+            setElementAttr(element, {
+                'rx': width,
+                'ry': height
+            });
+        } else {
+            element = makeElement('ellipse', {
+                'id'                : element_id,
+                'cx'                : point_begin.x,
+                'cy'                : point_begin.y,
+                'rx'                : width,
+                'ry'                : height,
+                'stroke-width'      : config.painter_radius * 2,
+                'stroke'            : config.color,
+                'opacity'           : config.opacity / 2,
+                'fill'              : 'none',
+            });
+            _internal.el.appendChild(element);
+        }
+    }
+
     function getPointsArr(element_index) {
         if (_internal.paint_stack.elements[element_index] === undefined) {
             return initElement(element_index).points;
@@ -750,6 +783,7 @@
             break;
         case _self.options.WIDGETS.TOOL.LINE.NAME:
         case _self.options.WIDGETS.TOOL.RECT.NAME:
+        case _self.options.WIDGETS.TOOL.ELLIPSE.NAME:
             newCrossCur(e);
             break;
         }
@@ -814,7 +848,7 @@
                 var config = _internal.paint_stack.elements[_index].config;
                 // TODO: fix this hack
                 config.opacity *= 2;
-                draw(config);
+                draw(config, _internal.paint_stack.elements[_index].points);
                 break;
             case 'd':
                 _internal.paint_stack.elements[_index].is_deleted = true;
@@ -865,14 +899,11 @@
     }
 
     function isOutside(evt, parent) {
-        var elem = evt.relatedTarget || evt.toElement || evt.fromElement;
-        while (elem && elem !== parent) {
-            elem = elem.parentNode;
+        var elm = evt.relatedTarget || evt.toElement || evt.fromElement;
+        while (elm && elm !== parent) {
+            elm = elm.parentNode;
         }
-        if (elem !== parent) {
-            return true;
-        }
-        return false;
+        return elm !== parent;
     }
 
     function revs(input) {
