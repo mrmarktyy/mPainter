@@ -44,7 +44,7 @@
                         TYPE: ['FREE', 'LINE', 'RECT', 'ELLIPSE'],
                         FREE: {
                             NAME: 'FREE',
-                            ICON: '\u2710'
+                            ICON: '\u270E'
                         },
                         LINE: {
                             NAME: 'LINE',
@@ -65,11 +65,11 @@
                     GENERAL: {
                         UNDO: {
                             METHOD: 'undo',
-                            ICON: '\u21B6'
+                            ICON: '\u2190'
                         },
                         REDO: {
                             METHOD: 'redo',
-                            ICON: '\u21B7'
+                            ICON: '\u2192'
                         },
                         REPLAY: {
                             METHOD: 'replay',
@@ -77,7 +77,7 @@
                         },
                         RESET: {
                             METHOD: 'reset',
-                            ICON: '\u2672'
+                            ICON: '\u2573'
                         }
                     }
                 }

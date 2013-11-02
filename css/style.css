@@ -101,7 +101,7 @@ ul.m-color-list li:hover, ul.m-tool-list li:hover, ul.m-size-list li:hover {
     position: relative;
 }
 .m-button .m-undo {
-    left: 3px;
+    left: 5px;
 }
 .m-button .m-redo {
     left: 5px;
@@ -111,6 +111,6 @@ ul.m-color-list li:hover, ul.m-tool-list li:hover, ul.m-size-list li:hover {
     left: 5px;
 }
 .m-button .m-reset {
-    bottom: 2px;
-    left: 4px;
+    bottom: 3px;
+    left: 5px;
 }
