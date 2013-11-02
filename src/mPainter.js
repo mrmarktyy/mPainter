@@ -73,7 +73,7 @@
                         },
                         REPLAY: {
                             METHOD: 'replay',
-                            ICON: '\u27F3'
+                            ICON: '\u25B6'
                         },
                         RESET: {
                             METHOD: 'reset',

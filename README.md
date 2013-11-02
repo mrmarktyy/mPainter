@@ -33,28 +33,21 @@ Please see [Demo page]
 It is currently tested and working on:
 
 - Chrome 4.0+
-
 - Firefox 3.0+
-
 - Safari 3.2+
-
 - Opera 9.0+
-
 - IE 9+
-
-- WIN8 Pointer Screen
-
 - iOS Devices (iPhone/iPad, etc)
-
 - Android Devices
+- WIN8 Pointer Screen
 
 ### We're improving everyday !
 
 * strip off jQuery dependency ✓
 * undo/redo support ✓
-* tablets/mobile devices and win8 point screen support ✓
+* tablets/mobile devices and win8 pointer screen support ✓
 * cool replay support ✓
-* widget UI integration & enhancement ✓
+* UI integration & enhancement ✓
 * get/set public methods for save/load a painting ✓
 * support various shapes (line, rectangle, eclipse) ✓
 
@@ -62,7 +55,12 @@ It is currently tested and working on:
 
 * support save painting and direct upload it to S3
 * support layer based functions including resize, flip, rotate, etc
+* full documentation
 * and more...
+
+### Dependencies
+
+NO
 
 ### LICENCE
 

@@ -107,8 +107,8 @@ ul.m-color-list li:hover, ul.m-tool-list li:hover, ul.m-size-list li:hover {
     left: 5px;
 }
 .m-button .m-replay {
-    bottom: 4px;
-    left: 4px;
+    bottom: 1px;
+    left: 5px;
 }
 .m-button .m-reset {
     bottom: 2px;
