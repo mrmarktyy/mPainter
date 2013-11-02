@@ -3,34 +3,36 @@ Introduction
 
 **mPainter** is a simple, light-weighted, no dependencies SVG based painting widget library, which can easily embed a painting board wherever on your page.
 
-Please see [Demo page]
+### Demos / Exmaples
+-----
 
+Please see here, [Demo page]
 
 ### Getting Started
-========
+-----
 
-1. Embedding the script before the closing body tag in your HTML
+#####1. Embedding the script before the closing body tag in your HTML
 
 ``` html
 <script src="app/src/mPainter.js"></script>
 ```
 
-2. Put a DOM element where you want to the painting board to be
+#####2. Put a DOM element where you want to the painting board to be
 
 ``` html
 <div id="painting-board"></div>
 ```
 
-3. Initialize the painting board with a simple line code. And that's it, start painting !
+#####3. Initialize the painting board with a simple line code. And that's it, start painting !
 
 ``` html
 var mPainter = new mPainter('painting-board');
 ```
 
-4. More configuration options are available, please see documentation for details.
+#####4. More configuration options are available, please see documentation for details.
 
 ### Browser Support
-========
+-----
 
 It is currently tested and working on:
 
@@ -44,7 +46,7 @@ It is currently tested and working on:
 - WIN8 Pointer Screen
 
 ### We're improving everyday !
-========
+-----
 
 * strip off jQuery dependency ✓
 * undo/redo support ✓
@@ -55,7 +57,7 @@ It is currently tested and working on:
 * support various shapes (line, rectangle, eclipse) ✓
 
 ### Road Map
-========
+-----
 
 * support save painting and direct upload it to S3
 * support layer based functions including resize, flip, rotate, etc
@@ -63,12 +65,12 @@ It is currently tested and working on:
 * and more...
 
 ### Dependencies
-========
+-----
 
 NO
 
 ### LICENCE
-========
+-----
 
 This project is under [MIT] licence
 
