@@ -73,7 +73,8 @@
                         },
                         REPLAY: {
                             METHOD: 'replay',
-                            ICON: '\u25B6'
+                            ICON: '\u25B6',
+                            INPROGRESS: '\u25FC'
                         },
                         RESET: {
                             METHOD: 'reset',
@@ -95,6 +96,7 @@
 
             is_mousedown: false,
             replay_in_progress: false,
+            replay_to_stop: false,
             paint_start: undefined,
             paint_stack: {
                 elements: []
@@ -161,20 +163,48 @@
             img.src = url;
         },
 
+        stop: function () {
+            if (_internal.replay_in_progress === true) {
+                _internal.replay_to_stop = true;
+            }
+        },
+
         replay: function (callback) {
+            if (_internal.replay_in_progress === true) {
+                return;
+            }
             var elements = _internal.paint_stack.elements,
                 elements_length = elements.length,
+                replay_span = document.querySelectorAll('[title=replay')[0].childNodes[0],
                 _raf = _requestAnimationFrame(),
                 replay_time = time(),
                 deleted_time = 0,
                 element_begin = 0,
                 point_begin = 0,
                 number_drew = 0,
+                _json = this.getJSON(),
                 replay_points = [];
 
-            _internal.replay_in_progress = true;
             clearBoard();
+            _internal.replay_to_stop = false;
+            _internal.replay_in_progress = true;
+            if (replay_span) {
+                var click_handler = function (e) {
+                    _self.stop();
+                    this.innerText = _self.options.WIDGETS.GENERAL.REPLAY.ICON;
+                    this.removeEventListener('click', click_handler);
+                };
+                replay_span.innerText = _self.options.WIDGETS.GENERAL.REPLAY.INPROGRESS;
+                replay_span.addEventListener('click', click_handler, false);
+            }
             var render = function () {
+                if (_internal.replay_to_stop === true) {
+                    if (_json) {
+                        _self.setJSON(_json);
+                    }
+                    _internal.replay_in_progress = false;
+                    return;
+                }
                 var i, j, element_end,
                     before_time = _internal.paint_start + deleted_time + (time() - replay_time);
                 // find element_end
@@ -219,6 +249,7 @@
                 // If replay not done do recursion, otherwise execute callback
                 if (number_drew === elements_length) {
                     _internal.replay_in_progress = false;
+                    replay_span.innerText = _self.options.WIDGETS.GENERAL.REPLAY.ICON;
                     if (callback !== undefined && isFunction(callback)) {
                         callback();
                     }
@@ -248,16 +279,18 @@
         },
 
         reset: function () {
+            this.stop();
             _internal.undo = [];
             _internal.redo = [];
             _internal.config.element_index = 0;
             _internal.is_mousedown = false;
             _internal.replay_in_progress = false;
+            _internal.replay_to_stop = false;
             _internal.paint_start = undefined;
             _internal.paint_stack = {
                 elements: []
             };
-            clearBoard();
+            _requestAnimationFrame()(clearBoard);
         }
 
     };
@@ -739,7 +772,6 @@
             point_end = getPoint(points, config.element_index),
             width =  Math.abs(point_begin.x - point_end.x),
             height = Math.abs(point_begin.y - point_end.y);
-        console.log(point_begin, point_end, width, height);
         if (element) {
             setElementAttr(element, {
                 'rx': width,
