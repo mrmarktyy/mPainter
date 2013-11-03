@@ -25,7 +25,7 @@ Please see here, [Demo page]
 
 #####3. Initialize the painting board with a simple line code. And that's it, start painting !
 
-``` html
+``` javascript
 var mPainter = new mPainter('painting-board');
 ```
 

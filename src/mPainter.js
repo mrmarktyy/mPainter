@@ -537,7 +537,7 @@
     }
     // TODO: Add throttle if necessary
     function paintMove(e) {
-        if (_internal.is_mousedown === true) {
+        if (_internal.is_mousedown === true || isTouch()) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -920,7 +920,7 @@
     function getPointFromEvent(event) {
         var e = event || window.event,
             x, y;
-        if (!isTouch(e)) {
+        if (!isTouch()) {
             x = e.offsetX;
             y = e.offsetY;
         } else if (e.targetTouches.length) {
@@ -959,8 +959,8 @@
         }
     }
 
-    function isTouch(e) {
-        return event.type.search('touch') > -1;
+    function isTouch() {
+        return !!('ontouchstart' in window);
     }
 
     function isFunction(fn) {
