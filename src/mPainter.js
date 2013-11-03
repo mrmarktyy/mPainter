@@ -658,7 +658,10 @@
             len = points.length,
             last = len % 2 === 0 ? len - 1 : len - 2,
             d = 'M' + points[0].x + ',' + points[0].y;
-        // if only has 2-3 points
+        // if only has 1-3 points
+        if (len === 1) {
+            return d;
+        }
         if (len === 2 || len === 3) {
             return d + 'T' + points[len - 1].x + ',' + points[len - 1].y;
         }
