@@ -1,37 +1,37 @@
-Introduction
-========
+## Introduction
+
 
 **mPainter** is a simple, light-weighted, no dependencies SVG based painting widget library, which can easily embed a painting board wherever on your page.
 
-### Demos / Exmaples
+#### Demos / Exmaples
 -----
 
-Please see here, [Demo page]
+[Please see here for Demos]
 
-### Getting Started
------
+#### Getting Started
+----
 
-#####1. Embedding the script before the closing body tag in your HTML
+-- 1. Embedding the script before the closing body tag in your HTML
 
 ``` html
 <script src="app/src/mPainter.js"></script>
 ```
 
-#####2. Put a DOM element where you want to the painting board to be
+-- 2. Put a DOM element where you want to the painting board to be
 
 ``` html
 <div id="painting-board"></div>
 ```
 
-#####3. Initialize the painting board with a simple line code. And that's it, start painting !
+-- 3. Initialize the painting board with a simple line code. And that's it, start painting !
 
 ``` javascript
 var mPainter = new mPainter('painting-board');
 ```
 
-#####4. More configuration options are available, please see documentation for details.
+-- 4. More configuration options are available, please see documentation for details.
 
-### Browser Support
+#### Browser Support
 -----
 
 It is currently tested and working on:
@@ -45,7 +45,7 @@ It is currently tested and working on:
 - Android Devices
 - WIN8 Pointer Screen
 
-### We're improving everyday !
+#### We're improving everyday !
 -----
 
 * strip off jQuery dependency ✓
@@ -56,7 +56,7 @@ It is currently tested and working on:
 * get/set public methods for save/load a painting ✓
 * support various shapes (line, rectangle, eclipse) ✓
 
-### Road Map
+#### Road Map
 -----
 
 * support save painting and direct upload it to S3
@@ -64,15 +64,15 @@ It is currently tested and working on:
 * full documentation
 * and more...
 
-### Dependencies
+#### Dependencies
 -----
 
 NO
 
-### LICENCE
+#### Licence
 -----
 
 This project is under [MIT] licence
 
-[Demo page]: http://paint.tantanguanguan.com
+[Please see here for Demos]: http://paint.tantanguanguan.com
 [MIT]: http://en.wikipedia.org/wiki/MIT_License
